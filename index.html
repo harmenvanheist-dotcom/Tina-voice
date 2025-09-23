@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Tina · Voice Assistant · Morgen Academy</title>
   <meta name="description" content="Nederlandstalige voice interface met native microfoon-toegang." />
   <link rel="icon" href="logo.png">
@@ -12,12 +12,14 @@
     html, body { height: 100%; }
     body {
       margin: 0;
+      -webkit-text-size-adjust: 100%;
       font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
       background: linear-gradient(135deg, #D5C3DC 0%, #591270 100%) fixed;
       color: #f7f7f9;
       display: grid;
       place-items: center;
-      padding: clamp(16px, 3vw, 32px);
+      padding: clamp(12px, 3vw, 32px);
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
     }
     a { color: #bff1ff; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -34,18 +36,16 @@
     }
 
     header {
-      padding: clamp(18px, 3vw, 28px);
+      padding: clamp(14px, 3vw, 28px);
       display: grid;
       grid-template-columns: auto 1fr auto;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
     }
-    .brand {
-      display: flex; align-items: center; gap: 14px;
-    }
+    .brand { display: flex; align-items: center; gap: 12px; }
     .brand .logo {
-      width: 48px; height: 48px; border-radius: 10px; overflow: hidden;
+      width: 44px; height: 44px; border-radius: 10px; overflow: hidden;
       border: 1px solid rgba(255,255,255,.15);
       box-shadow: 0 6px 16px rgba(0,0,0,.35);
       flex: 0 0 auto;
@@ -54,8 +54,7 @@
     .brand-title { display: grid; gap: 6px; align-items: start; }
     .brand-title h1 {
       margin: 0;
-      /* iets groter dan vorige versie */
-      font-size: clamp(24px, 3.6vw, 36px);
+      font-size: clamp(22px, 3.6vw, 36px);
       letter-spacing: .2px;
       color: #D8FD57;
       text-shadow: 0 2px 10px rgba(216,253,87,.3);
@@ -65,27 +64,30 @@
 
     .status-chip {
       justify-self: end;
-      padding: 10px 14px; border-radius: 999px;
+      padding: 8px 12px; border-radius: 999px;
       background: rgba(216,253,87,.12); color: #e9ffd1;
       border: 1px solid rgba(216,253,87,.25); white-space: nowrap;
       font-variant-numeric: tabular-nums;
+      font-size: 14px;
     }
 
     .grid {
       display: grid; grid-template-columns: 360px 1fr;
-      gap: clamp(16px, 3vw, 28px); padding: clamp(18px, 3vw, 28px);
+      gap: clamp(12px, 3vw, 24px); padding: clamp(12px, 3vw, 24px);
     }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
     .panel {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 18px;
-      padding: clamp(16px, 2.6vw, 22px);
-      min-height: 180px;
+      padding: clamp(12px, 2.6vw, 20px);
+      min-height: 140px;
     }
-    .panel h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .3px; text-transform: uppercase; color: #D8FD57; }
-    .panel .content { color: #f3edf7; min-height: 90px; white-space: pre-wrap; word-break: break-word; }
-    .control { display: grid; place-items: center; gap: 18px; text-align: center; }
+    .panel h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: .3px; text-transform: uppercase; color: #D8FD57; }
+    .panel .content { color: #f3edf7; min-height: 90px; white-space: pre-wrap; word-break: break-word; hyphens: auto; }
+    .control { display: grid; place-items: center; gap: 14px; text-align: center; }
+
     .mic-button {
       width: 140px; height: 140px; border-radius: 50%; border: none; cursor: pointer;
       color: #591270;
@@ -98,7 +100,8 @@
     .mic-button:active { transform: translateY(0) scale(.98); }
     .mic-button.active {
       background: radial-gradient(70% 70% at 50% 50%, #ff6b6b 0%, #ff5252 100%);
-      color: #fff; box-shadow: 0 16px 40px rgba(255,107,107,.55); animation: pulse 1.4s infinite;
+      color: #fff; box-shadow: 0 16px 40px rgba(255,107,107,.55);
+      animation: pulse 1.4s infinite;
     }
     @keyframes pulse {
       0% { box-shadow: 0 12px 30px rgba(255,107,107,.45); transform: scale(1); }
@@ -108,17 +111,15 @@
     .hint { color: #d9cae5; opacity: .9; font-size: 14px; }
 
     /* CTA blok onder de tool */
-    .cta-wrap {
-      padding: 0 clamp(18px, 3vw, 28px) clamp(22px, 3vw, 28px);
-    }
+    .cta-wrap { padding: 0 clamp(12px, 3vw, 24px) clamp(16px, 3vw, 24px); }
     .cta {
-      padding: 14px 16px;
+      padding: 12px 14px;
       border: 1px solid rgba(255,255,255,0.10);
       border-radius: 14px;
       background: rgba(255,255,255,0.05);
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
     }
     .cta p { margin: 0; color: #f3edf7; }
@@ -135,8 +136,36 @@
     }
     .cta .btn:hover { transform: translateY(-1px); }
 
-    footer { padding: clamp(12px, 2vw, 18px) clamp(18px, 3vw, 28px); display: flex; justify-content: space-between; gap: 12px; color: #d9cae5; border-top: 1px solid rgba(255,255,255,0.08); }
+    footer {
+      padding: clamp(10px, 2vw, 16px) clamp(12px, 3vw, 24px);
+      display: flex; justify-content: space-between; gap: 10px; color: #d9cae5;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
     footer a { color: #bff1ff; }
+
+    /* Mobile tweaks */
+    @media (max-width: 600px) {
+      .brand .logo { width: 38px; height: 38px; }
+      .brand-title h1 { font-size: 22px; }
+      .brand-title p { font-size: 14px; }
+      .status-chip { font-size: 12px; padding: 6px 10px; }
+      .mic-button { width: 110px; height: 110px; font-size: 34px; }
+      .panel .content { font-size: 15px; }
+      .cta { grid-template-columns: 1fr; }
+      .cta .btn { width: 100%; text-align: center; }
+      footer { flex-direction: column; align-items: flex-start; gap: 6px; }
+    }
+
+    @media (max-width: 380px) {
+      .mic-button { width: 96px; height: 96px; font-size: 30px; }
+      .panel { padding: 10px; }
+      .panel h2 { font-size: 12px; }
+      .panel .content { font-size: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mic-button.active { animation: none; }
+    }
   </style>
 </head>
 <body>
@@ -148,7 +177,7 @@
         </a>
         <div class="brand-title">
           <h1>Tina</h1>
-          <p>Jouw personal assistent. Start de microfoon, vertel waar je mee bezig bent <br>en Tina vat het niet alleen voor je samen, ze geeft je ook je belangrijkste to-do's.</p>
+          <p>Jouw personal assistent, bespreek waar je mee bezig bent.<br>Tina vat het niet alleen voor je samen, ze geeft je ook je belangrijkste to-do's.</p>
         </div>
       </div>
       <div></div>
