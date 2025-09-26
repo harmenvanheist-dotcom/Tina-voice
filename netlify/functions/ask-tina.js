@@ -1,81 +1,163 @@
-const $ = s => document.querySelector(s);
-const statusEl = $('#status');
-const ttsToggle = $('#ttsToggle');
-const micBtn = $('#micBtn');
-const transcriptEl = $('#transcript');
-const answerEl = $('#answer');
-const clearBtn = $('#clearBtn');
+// ask-tina.js  —  frontend logica (spraak → Tina → antwoord)
+// Werkt op Netlify (tina.morgenacademy.nl) én op GitHub Pages preview.
 
+const ASK_TINA_ENDPOINT =
+  (location.host.endsWith('github.io'))
+    ? 'https://tina.morgenacademy.nl/.netlify/functions/ask-tina'
+    : '/.netlify/functions/ask-tina';
+
+// UI hooks
+const micBtn       = document.getElementById('micBtn');
+const transcriptEl = document.getElementById('transcript');
+const answerEl     = document.getElementById('answer');
+const statusEl     = document.getElementById('status');
+const clearBtn     = document.getElementById('clearBtn');
+const ttsToggle    = document.getElementById('ttsToggle');
+
+// Gespreksgeschiedenis voor “doorpraten”
 let history = [];
-let speaking = false;
-let synth = window.speechSynthesis;
-let lastUtterance = null;
 
-function setStatus(txt){ statusEl.textContent = 'Status: ' + txt; }
-
+// TTS (1x per antwoord, nooit in loop)
+const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
 function speak(text){
-  if(!ttsToggle.checked || !('speechSynthesis' in window)) return;
-  if(speaking && synth.speaking) synth.cancel(); // stop lopende stem
+  if (!ttsToggle?.checked || !synth) return;
+  synth.cancel();                        // kill eventueel lopende stem
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'nl-NL';
-  speaking = true;
-  u.onend = () => { speaking = false; lastUtterance = null; };
-  lastUtterance = u;
   synth.speak(u);
 }
 
+// Web Speech API (browser) — robuust starten/stoppen
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec;
-if(SR){
-  rec = new SR();
-  rec.lang = 'nl-NL';
-  rec.interimResults = true;
-  rec.continuous = true;
-  let buffer = '';
+let recognition = null;
+let recState = 'idle'; // idle | starting | listening | stopping
+let partialBuffer = '';
+let lastFinalAt = 0;
 
-  rec.onstart = () => { setStatus('luisteren…'); if(speaking) synth.cancel(); };
-  rec.onend = () => { setStatus('verwerken…'); if(buffer.trim()) sendToTina(buffer.trim()); buffer=''; };
-  rec.onerror = () => setStatus('fout');
+function setStatus(s){ statusEl.textContent = `Status: ${s}`; }
 
-  rec.onresult = (evt)=>{
-    let interim = '';
-    for(let i = evt.resultIndex; i < evt.results.length; i++){
-      const res = evt.results[i];
-      (res.isFinal ? (buffer += res[0].transcript+' ') : (interim += res[0].transcript));
+function startRecognition(){
+  if (!SR) {
+    micBtn.disabled = true;
+    transcriptEl.textContent = 'Deze browser ondersteunt geen spraakherkenning. Gebruik Chrome/Edge, of laat me Whisper inschakelen.';
+    return;
+  }
+  if (recState !== 'idle') return;
+
+  recognition = new SR();
+  recognition.lang = 'nl-NL';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  recognition.maxAlternatives = 1;
+
+  partialBuffer = '';
+  recState = 'starting';
+  setStatus('microfoon activeren…');
+
+  recognition.onstart = () => { recState = 'listening'; setStatus('luisteren…'); };
+
+  recognition.onerror = (e) => {
+    // Zichtbare hints bij veelvoorkomende fouten
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      transcriptEl.textContent = 'Toegang tot microfoon geweigerd. Klik op het slotje bij de URL → Microfoon: Toestaan.';
     }
-    transcriptEl.textContent = (buffer + (interim ? (' '+interim) : '')).trim();
+    setStatus('fout');
+    recState = 'idle';
   };
-} else {
-  micBtn.disabled = true;
-  transcriptEl.textContent = 'Je browser ondersteunt geen spraakherkenning.';
+
+  recognition.onresult = (evt) => {
+    let interim = '';
+    for (let i = evt.resultIndex; i < evt.results.length; i++){
+      const res = evt.results[i];
+      if (res.isFinal) {
+        partialBuffer += res[0].transcript + ' ';
+        lastFinalAt = Date.now();
+      } else {
+        interim += res[0].transcript;
+      }
+    }
+    const text = (partialBuffer + (interim ? ' ' + interim : '')).trim();
+    if (text) transcriptEl.textContent = text;
+
+    // **Anti-te-vroeg-stoppen**: we wachten op stilte van ~800ms ná een final
+    // iOS/Chrome geven soms snel final chunks; we throttle de stop zelf.
+    if (evt.results[evt.results.length - 1]?.isFinal) {
+      const plannedStopIn = 800; // ms
+      const myStamp = Date.now();
+      setTimeout(() => {
+        // alleen stoppen als er geen nieuwe finals zijn binnengekomen
+        if (Date.now() - lastFinalAt >= 750 && recState === 'listening') {
+          try { recState = 'stopping'; recognition.stop(); } catch {}
+        }
+      }, plannedStopIn);
+    }
+  };
+
+  recognition.onend = () => {
+    // Wordt ook getriggerd na stop(); hier pas naar Tina sturen
+    const finalText = partialBuffer.trim();
+    partialBuffer = '';
+    recState = 'idle';
+    if (finalText) {
+      setStatus('verwerken…');
+      sendToTina(finalText);
+    } else {
+      setStatus('klaar');
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch {
+    // “already started” race — abort en retry heel kort erna
+    try { recognition.abort(); } catch {}
+    setTimeout(() => { try { recognition.start(); } catch {} }, 120);
+  }
 }
 
-micBtn.addEventListener('click', ()=>{
-  if(!rec) return;
-  if(statusEl.textContent.includes('luisteren')){ rec.stop(); }
-  else { transcriptEl.textContent = '…verwerken…'; answerEl.textContent = '—'; rec.start(); }
+function stopRecognition(){
+  if (recState === 'listening') {
+    recState = 'stopping';
+    try { recognition.stop(); } catch {}
+  }
+}
+
+// Mic klik
+micBtn.addEventListener('click', () => {
+  // Als hij nog aan het voorlezen is en jij klikt, kappen we TTS direct af
+  if (synth) synth.cancel();
+
+  if (recState === 'idle') {
+    transcriptEl.textContent = '…verwerken…';
+    answerEl.textContent = '—';
+    startRecognition();
+  } else if (recState === 'listening') {
+    stopRecognition(); // handmatig stoppen
+  }
 });
 
-clearBtn.addEventListener('click', ()=>{
+// Wis gesprek
+clearBtn.addEventListener('click', () => {
   history = [];
+  if (recState === 'listening') stopRecognition();
+  if (synth) synth.cancel();
   transcriptEl.textContent = 'Hier verschijnt wat je zegt...';
   answerEl.textContent = '—';
   setStatus('klaar');
-  if(speaking) synth.cancel();
 });
 
+// Call Netlify function
 async function sendToTina(text){
   try{
-    setStatus('verwerken…');
     history.push({ role:'user', content:text });
 
-    const resp = await fetch('/.netlify/functions/ask-tina', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ input: text, history })
+    const resp = await fetch(ASK_TINA_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ input:text, history })
     });
 
-    if(!resp.ok){
+    if (!resp.ok) {
       answerEl.textContent = 'Er ging iets mis bij het ophalen van het antwoord.';
       setStatus('fout');
       return;
@@ -83,14 +165,27 @@ async function sendToTina(text){
 
     const data = await resp.json();
     const reply = (data.reply || '(geen antwoord)').trim();
-    answerEl.textContent = reply;
-    history.push({ role:'assistant', content:reply });
 
-    if(ttsToggle.checked) speak(reply);
+    // kleine opschoning/mark-up
+    const html = reply
+      .replace(/\*\*(Samenvatting|To-?do'?s?)\*\*:?/gi, '<strong>$1</strong>:')
+      .replace(/(^|\n)-\s+/g, '$1• ');
 
+    answerEl.innerHTML = html;
+    history.push({ role:'assistant', content: reply });
+
+    // Voorlees-optie (1x)
+    speak(data.followUp || reply);
     setStatus('klaar');
   }catch(e){
-    setStatus('fout');
+    console.error(e);
     answerEl.textContent = 'Kon geen verbinding maken.';
+    setStatus('fout');
   }
 }
+
+// Klein hulpsetje: badge wat ruimer
+(() => {
+  const badge = document.getElementById('status');
+  if (badge){ badge.style.minWidth = '112px'; badge.style.textAlign = 'center'; }
+})();
