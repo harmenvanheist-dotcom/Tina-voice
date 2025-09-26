@@ -6,11 +6,10 @@ const DATA_DIR = path.resolve(__dirname, '../../data');
 const SYSTEM_PROMPT = `
 Je bent **Tina**, de Nederlandstalige assistent van Morgen Academy.
 - Schrijf in het Nederlands, concreet en zonder wolligheid.
-- Antwoord beknopt; max ~10 regels totaal.
-- Structuur: **Antwoord** (kort) · **Vragen** (optioneel, max 3) · **Samenvatting** (1 zin) · **To-do’s** (3–5 bullets, realistische deadlines).
-- Als de gebruiker doorvraagt, bouw door op de vorige beurt (conversatie).
-- Antwoord **uitsluitend** op basis van de meegegeven CONTEXT en gebruikersberichten.
-  *Als iets ontbreekt, zeg wat je nog nodig hebt of dat je het niet zeker weet.*
+- Geef bruikbare inhoud: duidelijke stappen, keuzes en consequenties.
+- Structuur (als het past): **Antwoord** · **Vragen** (optioneel, max 3) · **Samenvatting** (1 zin) · **To-do’s** (3–6 bullets met realistische termijnen).
+- Bouw door op het eerdere gesprek (context).
+- Antwoord primair op basis van de gebruiker en eventueel meegegeven CONTEXT. Als info ontbreekt: zeg wat je nodig hebt i.p.v. te raden.
 `;
 
 async function readTxtFiles(maxFiles = 30, maxBytes = 200_000) {
@@ -27,8 +26,7 @@ async function readTxtFiles(maxFiles = 30, maxBytes = 200_000) {
       }
     }
     return docs;
-  } catch (e) {
-    // Geen /data map? Geen probleem: gewoon geen context.
+  } catch {
     return [];
   }
 }
@@ -41,15 +39,13 @@ function scoreDoc(docText, query) {
   return terms.reduce((acc, t) => acc + (text.split(t).length - 1), 0);
 }
 
-function selectPassages(text, query, maxChars = 1200) {
-  // Splits op alinea’s en neem alinea’s met een match; val terug op begin
+function selectPassages(text, query, maxChars = 1600) {
   const paras = text.split(/\n{2,}/g).map(p => p.trim()).filter(Boolean);
   const q = (query || '').toLowerCase();
   const scored = paras.map(p => {
-    const score = (p.toLowerCase().split((q || '').slice(0, 20)).length - 1) // ruwe score
-      + (p.length > 300 ? 0.5 : 0);
-    return { p, score };
-  }).sort((a,b) => b.score - a.score);
+    const s = (p.toLowerCase().split(q.slice(0, 24)).length - 1) + (p.length > 300 ? 0.5 : 0);
+    return { p, s };
+  }).sort((a,b) => b.s - a.s);
 
   let out = '';
   for (const {p} of scored) {
@@ -65,7 +61,6 @@ async function buildContext(query) {
   const docs = await readTxtFiles();
   if (!docs.length) return { contextText: '', sources: [] };
 
-  // Scoor documenten op basis van query, kies top 3
   const ranked = docs
     .map(d => ({ ...d, score: scoreDoc(d.text, query) }))
     .sort((a,b) => b.score - a.score)
@@ -74,7 +69,7 @@ async function buildContext(query) {
   const parts = [];
   const sources = [];
   for (const d of ranked) {
-    if (d.score <= 0) continue; // sla non-matches over
+    if (d.score <= 0) continue;
     const snippet = selectPassages(d.text, query);
     if (snippet) {
       parts.push(`SOURCE: ${d.name}\n${snippet}`);
@@ -90,7 +85,7 @@ exports.handler = async (event) => {
       return { statusCode: 405, body: 'Method Not Allowed' };
     }
     const { input, history = [] } = JSON.parse(event.body || '{}');
-    if (!input || typeof input !== 'string') {
+    if (typeof input !== 'string') {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing "input" string' }) };
     }
 
@@ -101,10 +96,7 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: 'OPENAI_API_KEY not set' }) };
     }
 
-    // Bouw berichten: system + (optioneel) context + history + huidige user
-    const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
-    ];
+    const messages = [{ role: 'system', content: SYSTEM_PROMPT }];
 
     if (contextText) {
       messages.push({
@@ -112,12 +104,11 @@ exports.handler = async (event) => {
         content: `CONTEXT (uit documenten; gebruik alleen als bron):
 ${contextText}
 
-Richtlijn: citeer relevante bronlabels (bijv. bestandsnaam) bij concrete instructies.`
+Richtlijn: noem relevante bronlabels (bestandsnamen) bij concrete instructies die je uit deze context haalt.`
       });
     }
 
-    // Neem laatste 6 beurtjes uit de client-history mee
-    for (const m of (history || []).slice(-6)) {
+    for (const m of (history || []).slice(-8)) {
       if (m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant')) {
         messages.push({ role: m.role, content: m.content });
       }
@@ -130,8 +121,8 @@ Richtlijn: citeer relevante bronlabels (bijv. bestandsnaam) bij concrete instruc
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        temperature: 0.3,
-        max_tokens: 320,
+        temperature: 0.35,
+        max_tokens: 650,
         messages
       })
     });
@@ -146,10 +137,7 @@ Richtlijn: citeer relevante bronlabels (bijv. bestandsnaam) bij concrete instruc
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reply: reply || '(geen antwoord)',
-        sources: sources || []
-      })
+      body: JSON.stringify({ reply: reply || '(geen antwoord)', sources: sources || [] })
     };
   } catch (err) {
     return {
