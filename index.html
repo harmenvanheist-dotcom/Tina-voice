@@ -3,245 +3,321 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tina · Voice assistent</title>
-  <meta name="color-scheme" content="dark light" />
+  <title>Tina – Voice Assistent</title>
   <style>
-    *,*::before,*::after{box-sizing:border-box}
-    html,body{height:100%}
     :root{
-      --paars:#5B2D82; --paars-dark:#462365;
-      --lime:#D8FD57; --lime2:#c8fb3c;
-      --card:rgba(255,255,255,.06);
-      --radius-xl:22px; --radius-lg:16px;
-      --gap-xl:clamp(18px,3vw,28px);
-      --gap-lg:clamp(14px,2.2vw,22px);
-      --gap-md:clamp(10px,1.8vw,18px);
-      --maxw:1080px
+      --bg1:#581270;           /* Morgen-paars donker */
+      --bg2:#3b0a50;           /* paars dieper */
+      --card:#442051;
+      --glass:rgba(80,35,95,.55);
+      --lime:#D5FF2C;          /* accent */
+      --lime-700:#b9e022;
+      --white:#ffffff;
+      --text:#F2EAF5;
+      --muted:#cdbdd6;
+      --shadow1:rgba(0,0,0,0.25);
+      --shadow2:rgba(0,0,0,0.35);
+      --radius:20px;
+      --radius-lg:26px;
+      --maxw:1080px;
     }
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
-      margin:0; color:#f5f7fa; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-      background:
-        radial-gradient(1200px 800px at 10% 0%, rgba(216,253,87,.08), transparent 60%),
-        radial-gradient(900px 700px at 100% 100%, rgba(216,253,87,.06), transparent 65%),
-        var(--paars);
-      line-height:1.5;
-      padding-top:calc(18px + env(safe-area-inset-top));
-      padding-bottom:calc(24px + env(safe-area-inset-bottom));
-      -webkit-text-size-adjust:100%; text-size-adjust:100%
+      margin:0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 20% 10%, #7c3ea1 0%, var(--bg1) 38%, var(--bg2) 100%);
+      padding: max(16px, env(safe-area-inset-top)) 16px 32px;
     }
-    a{color:var(--lime);text-decoration:none}
-    a:hover{text-decoration:underline}
-
-    .wrap{width:min(94vw,var(--maxw));margin:0 auto}
-
-    .header{
-      background:linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.04));
-      border:1px solid rgba(255,255,255,.08); border-radius:var(--radius-xl);
-      box-shadow:0 20px 60px rgba(0,0,0,.35);
-      padding:clamp(14px,2.4vw,20px) clamp(14px,2.4vw,22px)
+    .wrap{max-width:var(--maxw); margin:0 auto;}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.06)) , var(--glass);
+      border: 1px solid rgba(255,255,255,.07);
+      box-shadow: 0 10px 40px var(--shadow1);
+      border-radius: var(--radius-lg);
+      padding: 18px;
     }
-    .topline{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px}
-    .brand{display:flex;align-items:center;gap:10px;min-width:0}
-    .brand img{width:clamp(30px,6vw,40px);height:clamp(30px,6vw,40px);border-radius:10px;display:block}
-    .brand h1{margin:0;font-weight:800;font-size:clamp(22px,4.6vw,30px)}
-    .sub{grid-column:1/-1;margin-top:6px;font-size:clamp(13px,2.9vw,15px);opacity:.92}
-    .status{justify-self:end;color:#272C1D;background:rgba(214,255,100,.85);padding:6px 12px;border-radius:999px;font-size:clamp(12px,2.7vw,13px);border:1px solid rgba(0,0,0,.06)}
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; margin:8px 0 18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .brand img{ width:34px; height:34px; border-radius:10px; display:block }
+    .brand a{ color:var(--white); text-decoration:none }
+    .title{
+      font-size:1.7rem; font-weight:800; color:var(--lime);
+      line-height:1;
+    }
+    .subtitle{
+      color:var(--muted); font-size:.95rem; margin-top:6px;
+      max-width:800px;
+    }
+    .status{
+      background: rgba(255,255,255,.08); color:#d9e7c7;
+      border:1px solid rgba(255,255,255,.12);
+      padding:8px 12px; border-radius:999px; font-size:.85rem;
+      min-width:120px; text-align:center;
+    }
 
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-xl);margin-top:var(--gap-xl)}
-    @media (max-width:820px){.grid{grid-template-columns:1fr}}
+    .grid{
+      display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:6px;
+    }
+    .panel{ border-radius:var(--radius); padding:18px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.06); }
+    .panel h3{ margin:0 0 12px; font-size:.95rem; letter-spacing:.5px; color:var(--lime) }
+    .mic-panel{ display:flex; align-items:center; justify-content:center; height:320px; }
+    .mic{
+      width:190px; height:190px; border-radius:50%;
+      background: radial-gradient(circle at 50% 35%, #eaff74 0%, var(--lime) 60%, #c6fb22 100%);
+      box-shadow: 0 28px 60px rgba(0,0,0,.35), 0 0 0 12px rgba(213,255,44,.15) inset;
+      border:none; cursor:pointer; transition: transform .12s ease, box-shadow .12s ease;
+      display:grid; place-items:center; font-size:70px;
+    }
+    .mic:hover{ transform: translateY(-2px) scale(1.02); }
+    .mic.active{ box-shadow: 0 10px 40px rgba(255, 35, 130, .25), 0 0 0 18px rgba(255,255,255,.12) inset; }
+    .hint{ text-align:center; color:#d7cde0; margin-top:14px; font-size:.95rem }
 
-    .card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18));
-      border:1px solid rgba(255,255,255,.08); border-radius:var(--radius-xl);
-      box-shadow:0 20px 60px rgba(0,0,0,.35); padding:clamp(16px,3vw,22px)}
+    .text{
+      white-space:pre-wrap; line-height:1.6; color:#efe6f4;
+      min-height:120px;
+    }
+    .controls{
+      display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:8px; color:#d7cde0; font-size:.92rem
+    }
+    .switch{
+      display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+    }
+    .switch input{ accent-color: var(--lime) }
+    .btn{
+      border:none; background: linear-gradient(135deg, var(--lime), #eaff74);
+      color:#252525; font-weight:700; padding:10px 14px; border-radius:999px; cursor:pointer;
+      box-shadow: 0 10px 24px rgba(213,255,44,.26);
+    }
+    .btn:disabled{ opacity:.6; cursor:not-allowed }
 
-    .micbox{display:grid;place-items:center;text-align:center;gap:var(--gap-md);
-      min-height:clamp(220px,36vw,300px); background:linear-gradient(160deg, rgba(255,255,255,.02), rgba(0,0,0,.22));
-      border:1px solid rgba(255,255,255,.06); border-radius:16px}
-    .mic{width:clamp(160px,34vw,240px);height:clamp(160px,34vw,240px);border-radius:50%;display:grid;place-items:center;color:#1f1f1f;
-      background:radial-gradient(60% 60% at 50% 38%, rgba(255,255,255,.35), rgba(255,255,255,0) 60%),
-                 radial-gradient(70% 70% at 50% 60%, rgba(0,0,0,.25), rgba(0,0,0,0) 60%), var(--lime);
-      box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 10px rgba(214,255,100,.08);
-      transition:transform .12s ease;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .mic:active{transform:scale(.98)}
-    .mic-emoji{font-size:clamp(56px,8.5vw,82px);filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
-    .mic-hint{opacity:.9;font-size:clamp(13px,2.9vw,15px)}
+    /* Promo blok */
+    .promo{ margin-top:18px; padding:16px; }
+    .promo h4{ margin:0 0 8px; color:var(--lime) }
+    .promo p{ margin:0; color:#efe6f4 }
+    .promo .cta{ margin-top:14px; }
 
-    .panel{background:linear-gradient(160deg, rgba(255,255,255,.02), rgba(0,0,0,.22));
-      border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:clamp(16px,2.8vw,22px);
-      min-height:clamp(240px,34vw,300px)}
-    .label{color:var(--lime);font-weight:800;letter-spacing:.6px;font-size:clamp(14px,3.2vw,16px);margin-bottom:12px}
-    .ghost{opacity:.8}
+    footer{
+      margin-top:14px; color:#d2c7d8; font-size:.9rem; display:flex; gap:8px; flex-wrap:wrap; justify-content:space-between
+    }
+    footer a{ color:#cfe4ff; text-decoration:none }
 
-    /* Promo compacter, zeker mobiel */
-    .promo{margin-top:var(--gap-xl);background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18));
-      border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xl);box-shadow:0 20px 60px rgba(0,0,0,.35);
-      padding:clamp(14px,2.2vw,18px)}
-    .promo p{margin:0 0 12px 0;font-size:clamp(14px,3.4vw,18px);line-height:1.45}
-    .cta{display:inline-block;background:linear-gradient(180deg, var(--lime), var(--lime2));color:#222;font-weight:800;border-radius:999px;
-      padding:clamp(10px,2.4vw,14px) clamp(16px,3.8vw,24px);box-shadow:0 12px 36px rgba(214,255,100,.35);border:1px solid rgba(0,0,0,.08)}
-
-    .footer{margin-top:var(--gap-lg);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:clamp(12px,2.8vw,14px);opacity:.9}
+    /* Mobile */
+    @media (max-width: 860px){
+      .grid{ grid-template-columns:1fr; }
+      .mic{ width:160px; height:160px; font-size:56px }
+      .mic-panel{ height:auto }
+      .promo{ font-size:1rem }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header class="header">
-      <div class="topline">
-        <a class="brand" href="https://morgenacademy.nl" aria-label="Naar Morgen Academy">
-          <img src="logo.png" alt="Morgen Academy logo" />
-          <h1>Tina</h1>
-        </a>
-        <div id="status" class="status">Status: klaar</div>
-        <p class="sub">Jouw personal assistent — bespreek waar je mee bezig bent. Tina vat samen én geeft je belangrijkste to-do’s.</p>
-      </div>
+    <div class="card">
+      <header>
+        <div class="brand">
+          <a href="https://morgenacademy.nl" target="_blank" rel="noopener">
+            <img src="logo.png" alt="Morgen Academy" />
+          </a>
+          <div>
+            <div class="title">Tina</div>
+            <div class="subtitle">
+              Jouw personal assistent — bespreek waar je mee bezig bent. Tina vat samen en geeft je belangrijkste to-do’s.
+            </div>
+          </div>
+        </div>
+        <div class="status" id="status">Status: klaar</div>
+      </header>
 
       <div class="grid">
-        <div class="card">
-          <div class="micbox">
-            <button id="mic" class="mic" aria-label="Start of stop met inspreken"><span class="mic-emoji">🎤</span></button>
-            <div class="mic-hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
-            <label style="display:flex;gap:8px;align-items:center;font-size:13px;opacity:.9;margin-top:6px">
-              <input id="ttsToggle" type="checkbox" /> Lees antwoorden hardop voor
+        <section class="panel">
+          <div class="mic-panel">
+            <button id="micBtn" class="mic" aria-label="Spreekknop">🎤</button>
+          </div>
+          <div class="hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
+        </section>
+
+        <section class="panel">
+          <h3>TRANSCRIPT</h3>
+          <div id="transcript" class="text">Hier verschijnt wat je zegt…</div>
+          <h3 style="margin-top:16px;">ANTWOORD</h3>
+          <div id="answer" class="text">—</div>
+
+          <div class="controls">
+            <label class="switch" title="Laat Tina antwoorden voorlezen">
+              <input type="checkbox" id="ttsToggle" />
+              <span>Antwoorden voorlezen</span>
             </label>
+            <button id="clearBtn" class="btn" title="Wis de gesprekshistorie">Wis gesprek</button>
           </div>
-        </div>
-
-        <div class="card">
-          <div class="panel" style="margin-bottom:var(--gap-lg)">
-            <div class="label">TRANSCRIPT</div>
-            <div id="transcript" class="ghost">Hier verschijnt wat je zegt…</div>
-          </div>
-          <div class="panel">
-            <div class="label">ANTWOORD</div>
-            <div id="answer" class="ghost">—</div>
-          </div>
-        </div>
+        </section>
       </div>
-    </header>
 
-    <section class="promo" aria-label="Morgen Academy teaser">
-      <p><strong style="color:var(--lime)">Slimmer werken met AI</strong>, zodat jij tijd hebt voor leuke dingen. Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de avonden: met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.</p>
-      <a class="cta" href="https://morgenacademy.nl" target="_blank" rel="noopener">Ontdek trainingen</a>
-    </section>
+      <section class="panel promo">
+        <h4>Slimmer werken met AI</h4>
+        <p>
+          …zodat jij tijd hebt voor leuke dingen. Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de
+          avonden: met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.
+        </p>
+        <div class="cta">
+          <a class="btn" href="https://morgenacademy.nl" target="_blank" rel="noopener">Ontdek trainingen</a>
+        </div>
+      </section>
 
-    <footer class="footer">
-      <div>Werkt alleen via <strong>HTTPS</strong> en na een gebruikersactie. iOS Safari: tabblad actief houden.<br/>Tina slaat geen data op; niets van wat je bespreekt of ontvangt is zichtbaar voor Morgen Academy.</div>
-      <div>•</div>
-      <div>Prototype · <a href="https://morgenacademy.nl">Morgen Academy</a></div>
-    </footer>
+      <footer>
+        <div>Werkt alleen via <b>HTTPS</b> en na een gebruikersactie. iOS Safari: tabblad actief houden.</div>
+        <div>Prototype · <a href="https://morgenacademy.nl" target="_blank" rel="noopener">Morgen Academy</a></div>
+      </footer>
+    </div>
   </div>
 
   <script>
-    const API_URL = "/.netlify/functions/ask-tina";
-
-    const micBtn = document.getElementById('mic');
-    const transcriptEl = document.getElementById('transcript');
-    const answerEl = document.getElementById('answer');
+    // ===== Globale state =====
     const statusEl = document.getElementById('status');
+    const micBtn   = document.getElementById('micBtn');
+    const transcriptEl = document.getElementById('transcript');
+    const answerEl     = document.getElementById('answer');
     const ttsToggle = document.getElementById('ttsToggle');
+    const clearBtn  = document.getElementById('clearBtn');
 
-    let isRecording = false;
-    let recognition = null;
-    let history = []; // client-gespreksgeschiedenis
+    // Gespreksgeschiedenis voor multi-turn (client-side).
+    // Formaat: [{role:'user'|'assistant', content:'...'}]
+    const history = JSON.parse(sessionStorage.getItem('tina_history') || '[]');
 
-    function setStatus(s){ statusEl.textContent = s; }
-    function speak(text){
-      try{
-        if(!ttsToggle.checked) return;
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'nl-NL';
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(u);
-      }catch{}
+    function saveHistory(){
+      sessionStorage.setItem('tina_history', JSON.stringify(history.slice(-16)));
     }
 
-    // ---- Web Speech API (STT) fallback naar prompt
-    function createRecognition(){
-      const WSR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if(!WSR) return null;
-      const rec = new WSR();
+    // ===== Speech-to-Text (Web Speech API) =====
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null, listening = false;
+
+    if (SpeechRec) {
+      rec = new SpeechRec();
       rec.lang = 'nl-NL';
       rec.interimResults = true;
-      rec.continuous = true;
-      rec.onresult = (e)=>{
-        let finalText = '', interim = '';
-        for(let i=0;i<e.results.length;i++){
-          const res = e.results[i];
-          (res.isFinal ? finalText : interim) += res[0].transcript;
+      rec.continuous = false;
+
+      let currentText = '';
+      rec.onstart = () => { setStatus('Luisteren…'); micBtn.classList.add('active'); currentText=''; };
+      rec.onresult = (e) => {
+        let interim = '';
+        for (let i=e.resultIndex; i<e.results.length; i++){
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) currentText += t;
+          else interim += t;
         }
-        transcriptEl.textContent = (finalText || interim).trim();
-        transcriptEl.classList.remove('ghost');
+        transcriptEl.textContent = (currentText + interim).trim();
       };
-      rec.onerror = ()=> setStatus('Status: microfoonfout');
-      rec.onend = ()=> { if(isRecording){ stopRecording(); } };
-      return rec;
+      rec.onerror = () => { setStatus('fout'); micBtn.classList.remove('active'); listening=false; };
+      rec.onend = async () => {
+        micBtn.classList.remove('active'); listening = false;
+        const finalText = transcriptEl.textContent.trim();
+        if (finalText) await handleUserTurn(finalText);
+        else setStatus('klaar');
+      };
+    } else {
+      document.querySelector('.hint').textContent = 'Spraakherkenning wordt niet ondersteund in deze browser.';
     }
 
-    async function startRecording(){
-      // start STT
-      recognition = createRecognition();
-      if(recognition){
-        try{ recognition.start(); }catch{}
-      }
-      isRecording = true;
-      setStatus('Status: opnemen…');
-      micBtn.classList.add('active');
-    }
+    micBtn.addEventListener('click', () => {
+      if (!rec){ return; }
+      if (!listening){ listening = true; rec.start(); }
+      else { rec.stop(); }
+    });
 
-    function stopRecording(){
-      if(recognition){
-        try{ recognition.stop(); }catch{}
-        recognition = null;
-      }
-      isRecording = false;
-      micBtn.classList.remove('active');
-      sendToTina();
-    }
+    clearBtn.addEventListener('click', () => {
+      history.length = 0; saveHistory();
+      transcriptEl.textContent = 'Hier verschijnt wat je zegt…';
+      answerEl.textContent = '—';
+      setStatus('klaar');
+    });
 
-    async function sendToTina(){
-      const userInput = (transcriptEl.textContent || '').trim();
-      if(!userInput){ setStatus('Status: klaar'); return; }
+    // ===== Doorpraten: stuur geschiedenis + nieuwe user zin naar de function =====
+    async function handleUserTurn(userText){
+      setStatus('verwerken…');
+      // voeg user beurt toe
+      history.push({ role:'user', content: userText });
+      saveHistory();
 
-      setStatus('Status: verwerken…');
-      answerEl.textContent = '…';
-      answerEl.classList.remove('ghost');
-
-      // history aanvullen met de nieuwe user-beurt
-      history.push({ role:'user', content:userInput });
-
+      // vraag Tina
+      const controller = new AbortController();
+      const timeout = setTimeout(()=>controller.abort(), 25000);
       try{
-        const resp = await fetch(API_URL, {
+        const resp = await fetch('/.netlify/functions/ask-tina', {
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ input: userInput, history })
+          body: JSON.stringify({ messages: history }),
+          signal: controller.signal
         });
+        clearTimeout(timeout);
+        if(!resp.ok){
+          const t = await resp.text();
+          answerEl.textContent = 'Fout bij ophalen antwoord.';
+          console.warn('Function error:', t);
+          setStatus('fout');
+          return;
+        }
         const data = await resp.json();
-        const reply = (data && data.reply) ? data.reply : '(geen antwoord)';
-
+        const reply = (data.reply || '').trim();
+        if(!reply){
+          answerEl.textContent = '(geen antwoord)';
+          setStatus('klaar');
+          return;
+        }
         answerEl.textContent = reply;
-        speak(reply);
 
-        // assistant-beurt vastleggen, zodat vervolgvragen context hebben
+        // sla assistent beurt op voor context
         history.push({ role:'assistant', content: reply });
-      }catch(err){
-        console.error(err);
-        answerEl.textContent = 'Fout bij ophalen antwoord.';
-      }finally{
-        setStatus('Status: klaar');
+        saveHistory();
+
+        // TTS (optioneel)
+        if (ttsToggle.checked) speak(reply);
+
+        setStatus('klaar');
+      } catch(err){
+        answerEl.textContent = 'Onderbroken of timeout.';
+        console.warn(err);
+        setStatus('fout');
       }
     }
 
-    // Mic klikken
-    micBtn.addEventListener('click', ()=> {
-      if(!isRecording){ startRecording(); } else { stopRecording(); }
-    });
+    // ===== TTS: antwoord voorlezen =====
+    function pickDutchVoice(){
+      const voices = speechSynthesis.getVoices();
+      // probeer NL-voice te kiezen
+      const nlVoices = voices.filter(v => (v.lang || '').toLowerCase().startsWith('nl'));
+      return nlVoices[0] || voices.find(v => v.lang?.toLowerCase().startsWith('en')) || voices[0];
+    }
 
-    // Fallback: tik om handmatig tekst te geven (als STT ontbreekt)
-    transcriptEl.addEventListener('click', ()=>{
-      if(isRecording) return;
-      const t = prompt('Wat wil je aan Tina vertellen?');
-      if(t){ transcriptEl.textContent = t; transcriptEl.classList.remove('ghost'); sendToTina(); }
-    });
+    function speak(text){
+      if (!('speechSynthesis' in window)) return;
+      try{
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'nl-NL';
+        const v = pickDutchVoice();
+        if (v) u.voice = v;
+        u.rate = 1.02; u.pitch = 1.0;
+        speechSynthesis.speak(u);
+      }catch(e){ console.warn('TTS error', e); }
+    }
+
+    // Preload voices (Safari)
+    if ('speechSynthesis' in window){
+      speechSynthesis.onvoiceschanged = () => {};
+      speechSynthesis.getVoices();
+    }
+
+    function setStatus(s){
+      statusEl.textContent = 'Status: ' + s;
+    }
   </script>
 </body>
 </html>
