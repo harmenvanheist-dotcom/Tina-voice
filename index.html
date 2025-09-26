@@ -122,23 +122,31 @@
       statusEl.textContent = 'Status: luisteren…';
     }
 
-    async function callTina(text) {
-      statusEl.textContent = 'Status: verwerken…';
-      try {
-        const resp = await fetch(ASK_TINA_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: text })
-        });
-        const data = await resp.json();
-        outputEl.textContent = data.reply || '(geen antwoord)';
-        speak(data.reply || '');
-        statusEl.textContent = 'Status: klaar';
-      } catch (err) {
-        outputEl.textContent = 'Er ging iets mis bij het ophalen van het antwoord.';
-        statusEl.textContent = 'Status: fout';
-      }
+async function callTina(text) {
+  statusEl.textContent = 'Status: verwerken…';
+  try {
+    const resp = await fetch(ASK_TINA_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: text })
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      outputEl.textContent = `⚠️ Fout (${resp.status}): ${data.error || 'Onbekend'}\nDetail: ${data.detail || '-'}`;
+      statusEl.textContent = 'Status: fout';
+      return;
     }
+
+    outputEl.textContent = data.reply || '(geen antwoord)';
+    speak(data.reply || '');
+    statusEl.textContent = 'Status: klaar';
+  } catch (err) {
+    outputEl.textContent = `⚠️ Client error: ${err.message}`;
+    statusEl.textContent = 'Status: fout';
+  }
+}
 
     micBtn.onclick = () => {
       if (recognition && statusEl.textContent.includes('luisteren')) {
