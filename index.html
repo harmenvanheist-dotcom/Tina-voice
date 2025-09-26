@@ -1,192 +1,340 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tina · Voice Assistant · Morgen Academy</title>
-  <meta name="description" content="Nederlandstalige voice interface met native microfoon-toegang." />
-  <link rel="icon" href="logo.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tina – Voice Assistant</title>
+  <link rel="icon" href="logo.png" />
   <style>
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
-      background: linear-gradient(135deg, #D5C3DC 0%, #591270 100%) fixed;
-      color: #f7f7f7;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 1em;
+    :root{
+      --bg:#5a2b78;
+      --panel:#3f2458cc;
+      --panel-strong:#3b2254;
+      --txt:#f2eff7;
+      --muted:#c9bfe0;
+      --acid:#cfff37;   /* accent geelgroen */
+      --shadow:0 12px 40px rgba(0,0,0,.25);
+      --radius:22px;
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      max-width: 900px;
-      margin-bottom: 1em;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--txt);
+      font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1000px 600px at 20% -10%, #7a4ba3 0%, transparent 60%),
+        radial-gradient(1000px 600px at 90% 20%, #6a2b8a 0%, transparent 60%),
+        linear-gradient(180deg, #421a62 0%, #2e1346 100%);
+      min-height:100%;
     }
-    header img {
-      height: 36px;
-      cursor: pointer;
+    a{color:var(--muted);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{
+      max-width:1100px;
+      margin:40px auto;
+      padding:0 16px;
     }
-    header h1 {
-      font-size: 1.6em;
-      margin: 0;
-      color: #d5ff3f;
+    .card{
+      background:var(--panel);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
     }
-    main {
-      width: 100%;
-      max-width: 900px;
-      background: rgba(0,0,0,0.25);
-      border-radius: 16px;
-      padding: 1em;
-      display: flex;
-      flex-direction: column;
-      gap: 1em;
+    header.card{
+      display:flex;align-items:center;gap:14px;
+      padding:18px 20px;
     }
-    .status {
-      font-size: 0.9em;
-      color: #000;
-      background: #d5ff3f;
-      border-radius: 12px;
-      padding: 0.3em 0.7em;
-      float: right;
+    header .logo{
+      width:28px;height:28px;border-radius:6px;overflow:hidden;flex:0 0 28px
     }
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 1em;
+    header .title{
+      font-weight:800;font-size:28px;letter-spacing:.2px;color:var(--acid);
     }
-    @media (min-width: 700px) {
-      .container {
-        flex-direction: row;
-      }
+    header .tagline{flex:1;color:var(--muted);font-size:14px}
+    .status{
+      background:#51406b;border:1px solid #6f5c8b;color:#e5e1f0;
+      padding:6px 12px;border-radius:999px;font-size:12px;white-space:nowrap
     }
-    .box {
-      flex: 1;
-      background: rgba(0,0,0,0.25);
-      border-radius: 16px;
-      padding: 1em;
-      min-height: 180px;
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:18px;
+      margin-top:16px;
     }
-    .mic-box {
-      text-align: center;
+
+    .left.card, .right.card{padding:22px}
+    .mic-panel{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      border-radius:calc(var(--radius) - 6px);
+      padding:22px;min-height:380px;background:var(--panel-strong);
     }
-    .mic-btn {
-      background: #d5ff3f;
-      border: none;
-      border-radius: 50%;
-      width: 120px;
-      height: 120px;
-      font-size: 2em;
-      cursor: pointer;
-      transition: background 0.2s;
+    .mic-circle{
+      width:220px;height:220px;border-radius:50%;
+      background:radial-gradient(circle at 35% 30%, #eaff7d 0%, #cfff37 60%, #b8ff18 100%);
+      box-shadow:0 20px 40px rgba(0,0,0,.35), inset 0 12px 36px rgba(0,0,0,.15);
+      display:grid;place-items:center;cursor:pointer;user-select:none;
+      transition: transform .15s ease
     }
-    .mic-btn:hover {
-      background: #c0f035;
+    .mic-circle:active{transform:scale(.98)}
+    .mic{font-size:60px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
+    .hint{margin-top:20px;color:var(--muted);text-align:center}
+
+    .right .box{
+      background:var(--panel-strong);
+      border-radius:calc(var(--radius) - 6px);
+      padding:18px 16px;
+      margin-bottom:16px;
+      min-height:160px;
     }
-    h3 {
-      margin-top: 0;
-      color: #d5ff3f;
+    .h{
+      color:var(--acid);
+      font-weight:900;
+      letter-spacing:.5px;
+      font-size:14px;
+      margin:0 0 10px;
     }
-    footer {
-      max-width: 900px;
-      margin-top: 1em;
-      background: rgba(0,0,0,0.25);
-      padding: 1em;
-      border-radius: 16px;
-      font-size: 0.9em;
-      text-align: center;
+    .out{white-space:pre-wrap}
+
+    .controls{
+      display:flex;gap:14px;align-items:center;justify-content:flex-start;margin-top:6px
     }
-    footer a {
-      color: #d5ff3f;
-      text-decoration: none;
+    .toggle{
+      display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px
     }
-    footer a:hover {
-      text-decoration: underline;
+    .pill{
+      background:var(--acid);
+      color:#2a1d44;
+      border:none;border-radius:999px;
+      padding:10px 14px;
+      font-weight:700;cursor:pointer;
+      box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.25);
     }
-    .info-box {
-      background: rgba(0,0,0,0.25);
-      padding: 1em;
-      border-radius: 16px;
-      margin-top: 1em;
-      text-align: center;
+
+    .promo.card{
+      margin-top:18px;padding:18px;
     }
-    .info-box h3 {
-      margin: 0 0 0.5em 0;
-      font-size: 1.1em;
+    .promo p{
+      margin:0 0 12px 0;
+      color:var(--txt);
+      font-size:14px;
     }
-    .cta-btn {
-      background: #d5ff3f;
-      color: #000;
-      padding: 0.5em 1.2em;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-size: 1em;
+    .promo b{color:var(--acid);font-weight:900}
+
+    footer{
+      color:var(--muted);
+      font-size:12px;
+      margin:14px 0 28px;
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center
     }
-    .cta-btn:hover {
-      background: #c0f035;
-    }
-    .cta-btn.small {
-      font-size: 0.9em;
-      padding: 0.4em 1em;
+
+    /* mobile */
+    @media (max-width: 860px){
+      header .title{font-size:24px}
+      .grid{grid-template-columns: 1fr}
+      .mic-panel{min-height:320px}
+      .mic-circle{width:180px;height:180px}
     }
   </style>
 </head>
 <body>
-  <header>
-    <a href="https://morgenacademy.nl" target="_blank">
-      <img src="logo.png" alt="Morgen Academy Logo">
-    </a>
-    <h1>Tina</h1>
-    <span class="status" id="status">Status: klaar</span>
-  </header>
+  <div class="wrap">
+    <!-- Header -->
+    <header class="card">
+      <a class="logo" href="https://morgenacademy.nl" target="_blank" rel="noopener">
+        <img src="logo.png" alt="Morgen Academy" width="28" height="28" />
+      </a>
+      <div class="title">Tina</div>
+      <div class="tagline">Jouw personal assistent — bespreek waar je mee bezig bent. Tina vat samen en geeft je belangrijkste to-do’s.</div>
+      <div id="status" class="status">Status: klaar</div>
+    </header>
 
-  <main>
-    <p>Jouw personal assistent — bespreek waar je mee bezig bent. Tina vat samen en geeft je belangrijkste to-do’s.</p>
-    <div class="container">
-      <div class="box mic-box">
-        <button id="micBtn" class="mic-btn">🎤</button>
-        <p>Klik om te spreken. Nogmaals klikken = stoppen.</p>
-      </div>
-
-      <div class="box">
-        <h3>TRANSCRIPT</h3>
-        <div id="transcript">Hier verschijnt wat je zegt...</div>
-      </div>
-
-      <div class="box">
-        <h3>Samenvatting en To-Do’s</h3>
-        <div id="answer">—</div>
-        <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
-          <label><input type="checkbox" id="tts-toggle"> Antwoorden voorlezen</label>
-          <button class="cta-btn small" onclick="clearChat()">Wis gesprek</button>
+    <!-- Main -->
+    <div class="grid">
+      <!-- Left: microphone -->
+      <section class="left card">
+        <div class="mic-panel">
+          <div id="mic" class="mic-circle" title="Klik om te spreken">
+            <div class="mic">🎤</div>
+          </div>
+          <div class="hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
         </div>
-      </div>
+      </section>
+
+      <!-- Right: transcript + answer -->
+      <section class="right card">
+        <div class="box">
+          <p class="h">TRANSCRIPT</p>
+          <div id="transcript" class="out">Hier verschijnt wat je zegt...</div>
+        </div>
+
+        <div class="box" style="min-height:200px">
+          <p class="h">SAMENVATTING EN TO-DO’S</p>
+          <div id="answer" class="out">—</div>
+          <div class="controls">
+            <label class="toggle">
+              <input id="ttsToggle" type="checkbox" />
+              <span>Antwoorden voorlezen</span>
+            </label>
+            <button id="clearBtn" class="pill" type="button">Wis gesprek</button>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <div class="info-box">
-      <h3>Slimmer werken met AI zodat jij tijd hebt voor leuke dingen.</h3>
-      <p>
-        Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de avonden:
-        met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.
-      </p>
-      <button class="cta-btn" onclick="window.open('https://morgenacademy.nl', '_blank')">Ontdek trainingen</button>
-    </div>
-  </main>
+    <!-- Promo (kleiner & subtieler) -->
+    <section class="promo card">
+      <p><b>Slimmer werken met AI</b> zodat jij tijd hebt voor leuke dingen. Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de avonden: met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.</p>
+      <a class="pill" href="https://morgenacademy.nl" target="_blank" rel="noopener">Ontdek trainingen</a>
+    </section>
 
-  <footer>
-    <p>
-      Werkt alleen via <strong>HTTPS</strong> en na een gebruikersactie. iOS Safari: tabblad actief houden.<br>
-      Tina slaat geen data op, niets van wat je bespreekt of ontvangt is zichtbaar voor Morgen Academy.
-    </p>
-    <p>Prototype · <a href="https://morgenacademy.nl" target="_blank">Morgen Academy</a></p>
-  </footer>
+    <!-- Footer -->
+    <footer>
+      <span>Werkt alleen via <strong>HTTPS</strong> en na een gebruikersactie. iOS Safari: tabblad actief houden.</span>
+      <span>•</span>
+      <span>Tina slaat geen data op; niets van wat je bespreekt of ontvangt is zichtbaar voor Morgen Academy.</span>
+      <span>•</span>
+      <span>Prototype · <a href="https://morgenacademy.nl" target="_blank" rel="noopener">Morgen Academy</a></span>
+    </footer>
+  </div>
 
-  <script src="app.js"></script>
+  <script>
+    // ------- UI helpers -------
+    const qs = s => document.querySelector(s);
+    const statusEl = qs('#status');
+    const micEl = qs('#mic');
+    const transcriptEl = qs('#transcript');
+    const answerEl = qs('#answer');
+    const ttsToggle = qs('#ttsToggle');
+    const clearBtn = qs('#clearBtn');
+
+    function setStatus(txt){ statusEl.textContent = 'Status: ' + txt; }
+    function speak(text){
+      try{
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'nl-NL';
+        u.rate = 1.02;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      }catch(e){}
+    }
+
+    // ------- Conversation memory (lichtgewicht) -------
+    const MAX_TURNS = 6; // laatste 6 uitwisselingen
+    let history = [];    // {role:'user'|'assistant', content:''}
+
+    function pushHistory(role, content){
+      history.push({ role, content });
+      if(history.length > MAX_TURNS*2){
+        history = history.slice(-MAX_TURNS*2);
+      }
+    }
+
+    // ------- Speech-to-text (webkitSpeechRecognition / fallback) -------
+    let recognizing = false;
+    let recog;
+
+    function startSTT(){
+      if('webkitSpeechRecognition' in window){
+        recog = new webkitSpeechRecognition();
+        recog.lang = 'nl-NL';
+        recog.interimResults = true;
+        recog.continuous = true;
+        let finalText = '';
+
+        recog.onstart = () => { recognizing = true; setStatus('luisteren…'); };
+        recog.onresult = (e) => {
+          let interim = '';
+          for(let i=e.resultIndex;i<e.results.length;i++){
+            const res = e.results[i];
+            if(res.isFinal) finalText += res[0].transcript;
+            else interim += res[0].transcript;
+          }
+          transcriptEl.textContent = (finalText + interim).trim();
+        };
+        recog.onerror = () => { setStatus('fout'); };
+        recog.onend = async () => {
+          recognizing = false;
+          const text = transcriptEl.textContent.trim();
+          if(text){
+            await askTina(text);
+          }else{
+            setStatus('klaar');
+          }
+        };
+        recog.start();
+      }else{
+        // geen STT beschikbaar
+        const text = prompt('Geen microfoon-API beschikbaar. Typ hier je bericht:');
+        if(text){
+          transcriptEl.textContent = text;
+          askTina(text);
+        }
+      }
+    }
+
+    function stopSTT(){
+      try{ if(recog) recog.stop(); }catch(e){}
+    }
+
+    micEl.addEventListener('click', () => {
+      if(recognizing){ stopSTT(); }
+      else { startSTT(); }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      history = [];
+      transcriptEl.textContent = 'Hier verschijnt wat je zegt...';
+      answerEl.textContent = '—';
+      setStatus('klaar');
+      speechSynthesis.cancel();
+    });
+
+    // ------- Call Netlify Function -------
+    async function askTina(input){
+      try{
+        setStatus('verwerken…');
+        pushHistory('user', input);
+
+        // stuur beknopte conversatie mee
+        const payload = {
+          input,
+          history // de function houdt al rekening met max tokens + systeemprompt
+        };
+
+        const resp = await fetch('/.netlify/functions/ask-tina', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+
+        if(!resp.ok){
+          const t = await resp.text();
+          answerEl.textContent = 'Fout bij ophalen antwoord.';
+          console.error('Function error:', t);
+          setStatus('fout');
+          return;
+        }
+
+        const data = await resp.json();
+        const reply = (data.reply || '').trim() || '(geen antwoord)';
+        answerEl.textContent = reply;
+        pushHistory('assistant', reply);
+
+        // optioneel voorlezen
+        if(ttsToggle.checked) speak(reply);
+
+        // eenvoudige “doorpraat” heuristiek: als laatste zin eindigt met vraagteken,
+        // laat status “wachten op antwoord” zien.
+        const lastChar = reply.slice(-1);
+        setStatus(lastChar === '?' ? 'wachten op antwoord…' : 'klaar');
+      }catch(err){
+        console.error(err);
+        answerEl.textContent = 'Er ging iets mis.';
+        setStatus('fout');
+      }
+    }
+  </script>
 </body>
 </html>
