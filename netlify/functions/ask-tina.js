@@ -1,75 +1,96 @@
-const SYSTEM_PROMPT = `
-Je bent **Tina**, de Nederlandstalige assistent van Morgen Academy.
-Schrijf altijd in het Nederlands, spreek de gebruiker aan met "je".
+const $ = s => document.querySelector(s);
+const statusEl = $('#status');
+const ttsToggle = $('#ttsToggle');
+const micBtn = $('#micBtn');
+const transcriptEl = $('#transcript');
+const answerEl = $('#answer');
+const clearBtn = $('#clearBtn');
 
-DOEL
-- Geef bruikbaar, praktijkgericht advies.
-- Stel alleen verdiepende vragen als ze écht nodig zijn om door te kunnen.
+let history = [];
+let speaking = false;
+let synth = window.speechSynthesis;
+let lastUtterance = null;
 
-STIJL
-- Kort waar het kan, langer waar het moet.
-- Zero-wolligheid.
-- Geen herhaling van de gebruiker.
+function setStatus(txt){ statusEl.textContent = 'Status: ' + txt; }
 
-STRUCTUUR (strikt aanhouden)
-1) **Antwoord** – 2–6 zinnen met duidelijke richting of mini-plan. Langer mag indien het een uitgebreid project betreft.
-2) **Samenvatting** – 2–6 zinnen die de essentie benoemen.
-3) **To-do’s** – 3–5 bullets (meer indien expliciet genoemd). Elke bullet start met een werkwoord + realistische termijn.
-`;
+function speak(text){
+  if(!ttsToggle.checked || !('speechSynthesis' in window)) return;
+  if(speaking && synth.speaking) synth.cancel(); // stop lopende stem
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'nl-NL';
+  speaking = true;
+  u.onend = () => { speaking = false; lastUtterance = null; };
+  lastUtterance = u;
+  synth.speak(u);
+}
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec;
+if(SR){
+  rec = new SR();
+  rec.lang = 'nl-NL';
+  rec.interimResults = true;
+  rec.continuous = true;
+  let buffer = '';
 
-export async function handler(event) {
-  try {
-    if (event.httpMethod === 'OPTIONS') {
-      return { statusCode: 204, headers: corsHeaders, body: '' };
+  rec.onstart = () => { setStatus('luisteren…'); if(speaking) synth.cancel(); };
+  rec.onend = () => { setStatus('verwerken…'); if(buffer.trim()) sendToTina(buffer.trim()); buffer=''; };
+  rec.onerror = () => setStatus('fout');
+
+  rec.onresult = (evt)=>{
+    let interim = '';
+    for(let i = evt.resultIndex; i < evt.results.length; i++){
+      const res = evt.results[i];
+      (res.isFinal ? (buffer += res[0].transcript+' ') : (interim += res[0].transcript));
     }
+    transcriptEl.textContent = (buffer + (interim ? (' '+interim) : '')).trim();
+  };
+} else {
+  micBtn.disabled = true;
+  transcriptEl.textContent = 'Je browser ondersteunt geen spraakherkenning.';
+}
 
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, headers: corsHeaders, body: 'Method Not Allowed' };
-    }
+micBtn.addEventListener('click', ()=>{
+  if(!rec) return;
+  if(statusEl.textContent.includes('luisteren')){ rec.stop(); }
+  else { transcriptEl.textContent = '…verwerken…'; answerEl.textContent = '—'; rec.start(); }
+});
 
-    const { input } = JSON.parse(event.body || '{}');
-    if (!input || typeof input !== 'string') {
-      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Missing "input" string' }) };
-    }
+clearBtn.addEventListener('click', ()=>{
+  history = [];
+  transcriptEl.textContent = 'Hier verschijnt wat je zegt...';
+  answerEl.textContent = '—';
+  setStatus('klaar');
+  if(speaking) synth.cancel();
+});
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'OPENAI_API_KEY not set' }) };
-    }
+async function sendToTina(text){
+  try{
+    setStatus('verwerken…');
+    history.push({ role:'user', content:text });
 
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        temperature: 0.3,
-        max_tokens: 600,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: input }
-        ]
-      })
+    const resp = await fetch('/.netlify/functions/ask-tina', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ input: text, history })
     });
 
-    if (!resp.ok) {
-      const text = await resp.text();
-      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: 'OpenAI error', detail: text }) };
+    if(!resp.ok){
+      answerEl.textContent = 'Er ging iets mis bij het ophalen van het antwoord.';
+      setStatus('fout');
+      return;
     }
 
     const data = await resp.json();
-    const reply = data?.choices?.[0]?.message?.content?.trim() || '';
-    return {
-      statusCode: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reply: reply || '(geen antwoord)' })
-    };
-  } catch (err) {
-    return { statusCode: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: String(err) }) };
+    const reply = (data.reply || '(geen antwoord)').trim();
+    answerEl.textContent = reply;
+    history.push({ role:'assistant', content:reply });
+
+    if(ttsToggle.checked) speak(reply);
+
+    setStatus('klaar');
+  }catch(e){
+    setStatus('fout');
+    answerEl.textContent = 'Kon geen verbinding maken.';
   }
 }
