@@ -3,92 +3,72 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tina – Voice assistent</title>
+  <title>Tina · Morgen Academy Voice assistent</title>
   <meta name="color-scheme" content="dark light" />
-  <link rel="icon" href="logo.png" />
   <style>
     :root{
-      --bg1:#5f2a79; --bg2:#3d1d59;
-      --card:#3f235aee; --cardSoft:#3b2155cc;
-      --border:rgba(255,255,255,.08);
-      --text:#ffffffde; --muted:#ffffff99;
-      --brand:#d0ff2a; --brandText:#152200;
-      --shadow:0 18px 50px rgba(0,0,0,.28);
-      --radius:22px; --radiusLg:26px;
-      --gap:28px; --maxW:1000px;
+      --bg1:#5f2a79; --bg2:#3d1d59; --card:#3f235aee; --cardSoft:#3b2155cc;
+      --border:rgba(255,255,255,.08); --text:#ffffffde; --muted:#ffffff99;
+      --brand:#d0ff2a; --brandText:#152200; --shadow:0 18px 50px rgba(0,0,0,.28);
+      --radius:22px; --radiusLg:26px; --gap:28px; --maxW:1000px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box} html,body{height:100%}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
       color:var(--text);
-      background: radial-gradient(1200px 700px at 20% -10%, #8d58c9 0%, transparent 70%),
-                  radial-gradient(1200px 700px at 100% 10%, #54257f 0%, transparent 60%),
-                  linear-gradient(160deg,var(--bg1),var(--bg2));
+      background:
+        radial-gradient(1200px 700px at 20% -10%, #8d58c980, transparent 70%),
+        radial-gradient(1200px 700px at 100% 10%, #54257f80, transparent 60%),
+        linear-gradient(160deg,var(--bg1),var(--bg2));
       min-height:100%;
       -webkit-font-smoothing:antialiased;
-      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right))
+              max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
     }
     .wrap{max-width:var(--maxW); margin:0 auto}
-    .panel{
-      background:linear-gradient(160deg,#3f235a,#2c1546 70%);
-      border:1px solid var(--border);
-      box-shadow:var(--shadow);
-      border-radius:var(--radiusLg);
-      padding:24px;
-    }
-    .top{
-      display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; padding:8px 12px 0 12px;
-    }
+    .panel{background:linear-gradient(160deg,#3f235a,#2c1546 70%); border:1px solid var(--border);
+      box-shadow:var(--shadow); border-radius:var(--radiusLg); padding:24px;}
+    .top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:8px 12px 0 12px;}
     .brand{display:flex; align-items:center; gap:12px;}
-    .brand img{width:28px; height:28px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,.35);}
-    .title{font-size:28px; font-weight:800; color:var(--brand); text-shadow:0 6px 22px rgba(0,0,0,.35);}
-    .subtitle{color:var(--muted); font-size:14px;}
-    .status{background:rgba(255,255,255,.08); border:1px solid var(--border); color:#e6e6e6; border-radius:999px; padding:8px 14px; font-size:12px; white-space:nowrap;}
+    .brand img{width:28px;height:28px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+    .title{font-size:28px;font-weight:800;color:var(--brand);text-shadow:0 6px 22px rgba(0,0,0,.35)}
+    .subtitle{margin-top:4px;color:var(--muted);font-size:14px;max-width:60ch}
+    .status{background:rgba(255,255,255,.08);border:1px solid var(--border);color:#e6e6e6;
+      border-radius:999px;padding:8px 14px;font-size:12px;white-space:nowrap}
 
-    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:var(--gap); margin-top:18px;}
-    .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:22px;}
-    .micWrap{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; height:100%;}
-    .micBtn{
-      width:240px; height:240px; border-radius:50%; display:grid; place-items:center;
-      background: radial-gradient(circle at 50% 35%, #dfff4a, #b6ff1e 68%, #9be000 100%);
-      box-shadow: 0 18px 50px rgba(0,0,0,.35), inset 0 -8px 22px rgba(0,0,0,.18);
-      border:none; cursor:pointer; transition: transform .06s ease;
-    }
-    .micBtn:active{ transform: scale(.98) }
-    .micIcon{ font-size:54px; filter: drop-shadow(0 8px 18px rgba(0,0,0,.35)); }
-    .hint{ color:var(--muted); font-size:14px; }
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-top:18px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
+    .micWrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:400px}
+    .micBtn{width:240px;height:240px;border-radius:50%;display:grid;place-items:center;border:none;cursor:pointer;
+      background:radial-gradient(circle at 50% 35%,#dfff4a,#b6ff1e 68%,#9be000 100%);
+      box-shadow:0 18px 50px rgba(0,0,0,.35),inset 0 -8px 22px rgba(0,0,0,.18); transition:transform .06s ease}
+    .micBtn:active{transform:scale(.98)} .micIcon{font-size:54px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35))}
+    .hint{color:var(--muted);font-size:14px}
 
-    .rightCol{ display:flex; flex-direction:column; gap:18px; }
-    .section{background:var(--cardSoft); border:1px solid var(--border); border-radius:18px; padding:18px;}
-    .h{color:var(--brand); font-size:14px; font-weight:800; margin:0 0 10px;}
-    .box{min-height:110px; font-size:16px; line-height:1.6;}
-    .controls{margin-top:10px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
-    .chk{ accent-color:var(--brand); }
-    .ghost{background: rgba(255,255,255,.08); color:var(--text); border:1px solid var(--border);
-      border-radius:999px; padding:8px 12px; font-size:14px; cursor:pointer;}
-    .ghost:hover{ background: rgba(255,255,255,.12) }
+    .rightCol{display:flex;flex-direction:column;gap:18px}
+    .section{background:var(--cardSoft);border:1px solid var(--border);border-radius:18px;padding:18px}
+    .h{color:var(--brand);font-size:14px;font-weight:800;margin:0 0 10px}
+    .box{min-height:120px;font-size:16px;line-height:1.6;white-space:pre-wrap}
+    .controls{margin-top:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .chk{accent-color:var(--brand)}
+    .ghost{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--border);
+      border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
+    .ghost:hover{background:rgba(255,255,255,.12)}
 
-    .promo{margin-top:var(--gap); background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;}
-    .promoText{font-size:13px; color:var(--text);}
-    .promoText .hi{color:var(--brand); font-weight:800}
-    .cta{border:none; cursor:pointer; background:linear-gradient(180deg, #dfff4a, #c5ff2a);
-      color:var(--brandText); font-weight:700; border-radius:999px; padding:10px 16px; box-shadow:0 10px 30px rgba(0,0,0,.25);
-      text-decoration:none; font-size:14px;}
+    .promo{margin-top:var(--gap);background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+    .promoText{font-size:13px}.promoText .hi{color:var(--brand);font-weight:800}
+    .cta{border:none;cursor:pointer;background:linear-gradient(180deg,#dfff4a,#c5ff2a);color:var(--brandText);font-weight:700;
+      border-radius:999px;padding:10px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25);text-decoration:none;font-size:14px}
 
-    footer{max-width:var(--maxW); margin:14px auto 0; color:var(--muted); font-size:12px;
-      display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
-    footer a{ color:#b4ff6a; text-decoration:none }
+    footer{max-width:var(--maxW);margin:14px auto 0;color:var(--muted);font-size:12px;
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    footer a{color:#b4ff6a;text-decoration:none}
 
-    @media (max-width: 820px){
-      .grid{ grid-template-columns:1fr; }
-      .micBtn{ width:56vw; height:56vw; max-width:360px; max-height:360px; }
-      .panel{ padding:18px; }
-      .top{ grid-template-columns:1fr auto; grid-template-areas:
-        "brand status" "subtitle subtitle"; row-gap:8px; }
-      .brandWrap{grid-area:brand}
-      .subtitle{grid-area:subtitle}
-      .status{grid-area:status}
+    @media (max-width:820px){
+      .grid{grid-template-columns:1fr}
+      .micBtn{width:56vw;height:56vw;max-width:360px;max-height:360px}
+      .panel{padding:18px}
     }
   </style>
 </head>
@@ -96,10 +76,8 @@
   <div class="wrap">
     <div class="panel">
       <div class="top">
-        <div class="brand brandWrap">
-          <a href="https://morgenacademy.nl" target="_blank" rel="noopener">
-            <img src="./logo.png" alt="Morgen Academy">
-          </a>
+        <div class="brand">
+          <a href="https://morgenacademy.nl" target="_blank" rel="noopener"><img src="./logo.png" alt="Morgen Academy"></a>
           <div class="title">Tina</div>
         </div>
         <div class="subtitle">Jouw personal assistent — bespreek waar je mee bezig bent. Tina vat samen en geeft je belangrijkste to-do’s.</div>
@@ -107,17 +85,21 @@
       </div>
 
       <div class="grid">
+        <!-- LEFT -->
         <div class="card">
           <div class="micWrap">
             <button id="micBtn" class="micBtn" aria-label="Spreken starten of stoppen"><span class="micIcon">🎤</span></button>
             <div class="hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
           </div>
         </div>
+
+        <!-- RIGHT -->
         <div class="rightCol">
           <div class="section">
             <p class="h">TRANSCRIPT</p>
             <div id="transcript" class="box">Hier verschijnt wat je zegt...</div>
           </div>
+
           <div class="section">
             <p class="h">SAMENVATTING EN TO-DO’S</p>
             <div id="answer" class="box">—</div>
@@ -145,53 +127,43 @@
   </div>
 
   <script>
-    // ---- Endpoint routing (Netlify vs GitHub Pages) ----
+    // --------- DOM refs
+    const micBtn = document.getElementById('micBtn');
+    const transcriptEl = document.getElementById('transcript');
+    const answerEl = document.getElementById('answer');
+    const statusEl = document.getElementById('status');
+    const ttsToggle = document.getElementById('ttsToggle');
+    const clearBtn = document.getElementById('clearBtn');
+
+    // --------- API endpoint (Netlify only; GitHub Pages heeft geen functies)
     const ASK_TINA_ENDPOINT =
-      (location.hostname === 'tina.morgenacademy.nl')
+      (location.hostname.endsWith('morgenacademy.nl'))
         ? '/.netlify/functions/ask-tina'
         : 'https://tina.morgenacademy.nl/.netlify/functions/ask-tina';
 
-    // ---- UI refs ----
-    const $ = s => document.querySelector(s);
-    const statusEl = $('#status');
-    const micBtn = $('#micBtn');
-    const transcriptEl = $('#transcript');
-    const answerEl = $('#answer');
-    const ttsToggle = $('#ttsToggle');
-    const clearBtn = $('#clearBtn');
-
-    // ---- TTS (geen loop; we cancel vóór elk nieuw praatje) ----
-    let synth = window.speechSynthesis;
-    let nlVoice = null;
-    if ('speechSynthesis' in window) {
-      const pickVoice = () => {
-        const voices = synth.getVoices();
-        nlVoice = voices.find(v => /nl(-|_|\b)/i.test(v.lang)) || voices.find(v => /Dutch/i.test(v.name)) || null;
-      };
-      pickVoice();
-      if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = pickVoice;
-      }
-    }
+    // --------- TTS (no more endless repeats)
+    const synth = window.speechSynthesis;
     function speak(text){
       if(!ttsToggle.checked || !('speechSynthesis' in window)) return;
-      synth.cancel(); // voorkom herhaal/overlap
+      synth.cancel();                       // stop lopende speech
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'nl-NL';
-      if (nlVoice) u.voice = nlVoice;
       synth.speak(u);
     }
 
-    // ---- Gespreksgeschiedenis (doorpraten) ----
-    let history = [];
+    // --------- Conversation
+    let history = []; // {role:'user'|'assistant', content}
 
-    // ---- Web Speech API (robuster luisteren met stilte-timeout) ----
+    // --------- Web Speech Recognition
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let rec = null;
-    let resultTimer = null;
-    const SILENCE_MS = 1500; // wacht dit na laatste resultaat vóór verzenden
+    let rec = null, listening = false, silenceTimer = null;
+    const SILENCE_MS = 2500;     // auto-stop na echte stilte
+    const MIN_MS = 1200;         // minimaal luisteren voor we auto-stop toestaan
+    let startedAt = 0;
 
-    function startRec(){
+    function setStatus(msg){ statusEl.textContent = 'Status: ' + msg; }
+
+    function startListening(){
       if(!SR){
         transcriptEl.textContent = 'Je browser ondersteunt geen spraakherkenning.';
         return;
@@ -199,95 +171,102 @@
       rec = new SR();
       rec.lang = 'nl-NL';
       rec.interimResults = true;
+      rec.maxAlternatives = 1;
       rec.continuous = true;
 
-      let buffer = '';      // definitieve tekst
-      let lastChunkAt = 0;  // timestamp laatste interim/final
+      let finalText = '';
 
       rec.onstart = () => {
-        statusEl.textContent = 'Status: luisteren…';
+        startedAt = Date.now();
+        listening = true;
+        setStatus('luisteren…');
         transcriptEl.textContent = '';
+        answerEl.textContent = '—';
+        synth.cancel(); // stop TTS als je weer gaat praten
+        kickSilenceTimer();
       };
-      rec.onerror = () => {
-        statusEl.textContent = 'Status: fout';
-      };
-      rec.onresult = (evt) => {
-        let interim = '';
-        for (let i = evt.resultIndex; i < evt.results.length; i++) {
-          const res = evt.results[i];
-          if (res.isFinal) buffer += res[0].transcript + ' ';
-          else interim += res[0].transcript;
-        }
-        lastChunkAt = Date.now();
-        transcriptEl.textContent = (buffer + interim).trim();
 
-        // debounce: als er SILENCE_MS voorbij gaat zonder nieuw resultaat, stop & verwerk
-        clearTimeout(resultTimer);
-        resultTimer = setTimeout(() => {
-          if (rec) rec.stop();
-        }, SILENCE_MS);
+      rec.onresult = (e) => {
+        let interim = '';
+        for(let i=e.resultIndex; i<e.results.length; i++){
+          const res = e.results[i];
+          if(res.isFinal) { finalText += res[0].transcript + ' '; }
+          else { interim += res[0].transcript; }
+        }
+        transcriptEl.textContent = (finalText + interim).trim();
+        kickSilenceTimer();
       };
+
+      rec.onerror = () => { setStatus('fout'); };
       rec.onend = () => {
-        clearTimeout(resultTimer);
-        const text = transcriptEl.textContent.trim();
-        if (text) sendToTina(text);
-        else statusEl.textContent = 'Status: klaar';
+        listening = false;
+        clearTimeout(silenceTimer);
+        const text = (transcriptEl.textContent || '').trim();
+        if(text) callTina(text);
+        else setStatus('klaar');
       };
+
       rec.start();
     }
 
-    micBtn.addEventListener('click', () => {
-      if (!rec || (statusEl.textContent.includes('klaar') || statusEl.textContent.includes('fout'))) {
-        // start nieuw
-        startRec();
-      } else if (statusEl.textContent.includes('luisteren')) {
-        // manueel stoppen
+    function stopListening(){
+      if(rec && listening){
+        clearTimeout(silenceTimer);
         rec.stop();
-      } else {
-        startRec();
       }
+    }
+
+    function kickSilenceTimer(){
+      clearTimeout(silenceTimer);
+      const elapsed = Date.now() - startedAt;
+      silenceTimer = setTimeout(()=>{
+        if(elapsed >= MIN_MS) stopListening();
+        // anders resetten we alleen: te kort geluisterd om automatisch te stoppen
+      }, SILENCE_MS);
+    }
+
+    // --------- UI events
+    micBtn.addEventListener('click', ()=>{
+      if(listening) stopListening();
+      else startListening();
     });
 
-    clearBtn.addEventListener('click', () => {
+    clearBtn.addEventListener('click', ()=>{
       history = [];
       transcriptEl.textContent = 'Hier verschijnt wat je zegt...';
       answerEl.textContent = '—';
-      if (synth) synth.cancel();
-      statusEl.textContent = 'Status: klaar';
+      setStatus('klaar');
+      synth.cancel();
     });
 
-    async function sendToTina(text){
+    // --------- Server call
+    async function callTina(text){
       try{
-        statusEl.textContent = 'Status: verwerken…';
+        setStatus('verwerken…');
         history.push({ role:'user', content:text });
 
         const resp = await fetch(ASK_TINA_ENDPOINT, {
           method:'POST',
           headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ input: text, history })
+          body: JSON.stringify({ input:text, history })
         });
 
         if(!resp.ok){
-          const msg = await resp.text();
-          console.error('Function error:', msg);
           answerEl.textContent = 'Er ging iets mis bij het ophalen van het antwoord.';
-          statusEl.textContent = 'Status: fout';
+          setStatus('fout');
           return;
         }
 
         const data = await resp.json();
-        const reply = (data.reply || '').trim() || '(geen antwoord)';
+        const reply = (data.reply || '(geen antwoord)').trim();
         answerEl.textContent = reply;
-        history.push({ role:'assistant', content: reply });
-
+        history.push({ role:'assistant', content:reply });
         speak(reply);
-        statusEl.textContent = 'Status: klaar';
+        setStatus('klaar');
       }catch(e){
         console.error(e);
         answerEl.textContent = 'Kon geen verbinding maken.';
-        statusEl.textContent = 'Status: fout';
-      } finally {
-        rec = null; // forceer schone start bij volgende klik
+        setStatus('fout');
       }
     }
   </script>
