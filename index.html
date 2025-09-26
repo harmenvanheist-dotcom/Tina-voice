@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tina · Morgen Academy Voice assistent</title>
+  <title>Tina · Voice assistent</title>
   <meta name="color-scheme" content="dark light" />
   <style>
     :root{
@@ -31,7 +31,7 @@
     .top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:8px 12px 0 12px;}
     .brand{display:flex; align-items:center; gap:12px;}
     .brand img{width:28px;height:28px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
-    .title{font-size:28px;font-weight:800;color:var(--brand);text-shadow:0 6px 22px rgba(0,0,0,.35)}
+    .title{font-size:28px;font-weight:800;color:var(--brand);text-shadow:0 6px 18px rgba(0,0,0,.35)}
     .subtitle{margin-top:4px;color:var(--muted);font-size:14px;max-width:60ch}
     .status{background:rgba(255,255,255,.08);border:1px solid var(--border);color:#e6e6e6;
       border-radius:999px;padding:8px 14px;font-size:12px;white-space:nowrap}
@@ -127,7 +127,6 @@
   </div>
 
   <script>
-    // --------- DOM refs
     const micBtn = document.getElementById('micBtn');
     const transcriptEl = document.getElementById('transcript');
     const answerEl = document.getElementById('answer');
@@ -135,30 +134,25 @@
     const ttsToggle = document.getElementById('ttsToggle');
     const clearBtn = document.getElementById('clearBtn');
 
-    // --------- API endpoint (Netlify only; GitHub Pages heeft geen functies)
     const ASK_TINA_ENDPOINT =
       (location.hostname.endsWith('morgenacademy.nl'))
         ? '/.netlify/functions/ask-tina'
         : 'https://tina.morgenacademy.nl/.netlify/functions/ask-tina';
 
-    // --------- TTS (no more endless repeats)
-    const synth = window.speechSynthesis;
+    let synth = window.speechSynthesis;
     function speak(text){
       if(!ttsToggle.checked || !('speechSynthesis' in window)) return;
-      synth.cancel();                       // stop lopende speech
+      synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'nl-NL';
       synth.speak(u);
     }
 
-    // --------- Conversation
-    let history = []; // {role:'user'|'assistant', content}
-
-    // --------- Web Speech Recognition
+    let history = [];
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     let rec = null, listening = false, silenceTimer = null;
-    const SILENCE_MS = 2500;     // auto-stop na echte stilte
-    const MIN_MS = 1200;         // minimaal luisteren voor we auto-stop toestaan
+    const SILENCE_MS = 2500;
+    const MIN_MS = 1200;
     let startedAt = 0;
 
     function setStatus(msg){ statusEl.textContent = 'Status: ' + msg; }
@@ -182,7 +176,7 @@
         setStatus('luisteren…');
         transcriptEl.textContent = '';
         answerEl.textContent = '—';
-        synth.cancel(); // stop TTS als je weer gaat praten
+        synth.cancel();
         kickSilenceTimer();
       };
 
@@ -221,11 +215,9 @@
       const elapsed = Date.now() - startedAt;
       silenceTimer = setTimeout(()=>{
         if(elapsed >= MIN_MS) stopListening();
-        // anders resetten we alleen: te kort geluisterd om automatisch te stoppen
       }, SILENCE_MS);
     }
 
-    // --------- UI events
     micBtn.addEventListener('click', ()=>{
       if(listening) stopListening();
       else startListening();
@@ -239,7 +231,6 @@
       synth.cancel();
     });
 
-    // --------- Server call
     async function callTina(text){
       try{
         setStatus('verwerken…');
@@ -252,6 +243,8 @@
         });
 
         if(!resp.ok){
+          const msg = await resp.text();
+          console.error('Function error:', msg);
           answerEl.textContent = 'Er ging iets mis bij het ophalen van het antwoord.';
           setStatus('fout');
           return;
