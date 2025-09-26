@@ -2,25 +2,20 @@
 <html lang="nl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Tina – Voice assistent</title>
-  <meta name="color-scheme" content="dark light">
+  <meta name="color-scheme" content="dark light" />
+  <link rel="icon" href="logo.png" />
   <style>
     :root{
-      --bg1:#5f2a79;
-      --bg2:#3d1d59;
-      --card:#3f235aee;
-      --cardSoft:#3b2155cc;
+      --bg1:#5f2a79; --bg2:#3d1d59;
+      --card:#3f235aee; --cardSoft:#3b2155cc;
       --border:rgba(255,255,255,.08);
-      --text:#ffffffde;
-      --muted:#ffffff99;
-      --brand:#d0ff2a;
-      --brandText:#152200;
+      --text:#ffffffde; --muted:#ffffff99;
+      --brand:#d0ff2a; --brandText:#152200;
       --shadow:0 18px 50px rgba(0,0,0,.28);
-      --radius:22px;
-      --radiusLg:26px;
-      --gap:28px;
-      --maxW:1000px;
+      --radius:22px; --radiusLg:26px;
+      --gap:28px; --maxW:1000px;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -34,7 +29,6 @@
       -webkit-font-smoothing:antialiased;
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
-
     .wrap{max-width:var(--maxW); margin:0 auto}
     .panel{
       background:linear-gradient(160deg,#3f235a,#2c1546 70%);
@@ -43,12 +37,14 @@
       border-radius:var(--radiusLg);
       padding:24px;
     }
-    .top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 12px 0 12px;}
+    .top{
+      display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; padding:8px 12px 0 12px;
+    }
     .brand{display:flex; align-items:center; gap:12px;}
     .brand img{width:28px; height:28px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,.35);}
     .title{font-size:28px; font-weight:800; color:var(--brand); text-shadow:0 6px 22px rgba(0,0,0,.35);}
-    .subtitle{margin-top:4px; color:var(--muted); font-size:14px;}
-    .status{background:rgba(255,255,255,.08); border:1px solid var(--border); color:#e6e6e6; border-radius:999px; padding:8px 14px; font-size:12px;}
+    .subtitle{color:var(--muted); font-size:14px;}
+    .status{background:rgba(255,255,255,.08); border:1px solid var(--border); color:#e6e6e6; border-radius:999px; padding:8px 14px; font-size:12px; white-space:nowrap;}
 
     .grid{display:grid; grid-template-columns: 1fr 1fr; gap:var(--gap); margin-top:18px;}
     .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:22px;}
@@ -88,6 +84,11 @@
       .grid{ grid-template-columns:1fr; }
       .micBtn{ width:56vw; height:56vw; max-width:360px; max-height:360px; }
       .panel{ padding:18px; }
+      .top{ grid-template-columns:1fr auto; grid-template-areas:
+        "brand status" "subtitle subtitle"; row-gap:8px; }
+      .brandWrap{grid-area:brand}
+      .subtitle{grid-area:subtitle}
+      .status{grid-area:status}
     }
   </style>
 </head>
@@ -95,7 +96,7 @@
   <div class="wrap">
     <div class="panel">
       <div class="top">
-        <div class="brand">
+        <div class="brand brandWrap">
           <a href="https://morgenacademy.nl" target="_blank" rel="noopener">
             <img src="./logo.png" alt="Morgen Academy">
           </a>
@@ -108,7 +109,7 @@
       <div class="grid">
         <div class="card">
           <div class="micWrap">
-            <button id="micBtn" class="micBtn"><span class="micIcon">🎤</span></button>
+            <button id="micBtn" class="micBtn" aria-label="Spreken starten of stoppen"><span class="micIcon">🎤</span></button>
             <div class="hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
           </div>
         </div>
@@ -122,7 +123,7 @@
             <div id="answer" class="box">—</div>
             <div class="controls">
               <label><input id="ttsToggle" class="chk" type="checkbox"> Antwoorden voorlezen</label>
-              <button id="clearBtn" class="ghost">Wis gesprek</button>
+              <button id="clearBtn" class="ghost" type="button">Wis gesprek</button>
             </div>
           </div>
         </div>
@@ -132,16 +133,163 @@
         <div class="promoText">
           <span class="hi">Slimmer werken met AI</span> zodat jij tijd hebt voor leuke dingen. Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de avonden: met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.
         </div>
-        <a class="cta" href="https://morgenacademy.nl" target="_blank">Ontdek trainingen</a>
+        <a class="cta" href="https://morgenacademy.nl" target="_blank" rel="noopener">Ontdek trainingen</a>
       </div>
     </div>
 
     <footer>
       <div>Werkt alleen via <strong>HTTPS</strong> en na een gebruikersactie. iOS Safari: tabblad actief houden.</div>
       <div>Tina slaat geen data op, niets van wat je bespreekt of ontvangt is zichtbaar voor Morgen Academy.</div>
-      <div>Prototype · <a href="https://morgenacademy.nl" target="_blank">Morgen Academy</a></div>
+      <div>Prototype · <a href="https://morgenacademy.nl" target="_blank" rel="noopener">Morgen Academy</a></div>
     </footer>
   </div>
-  <script src="ask-tina.js"></script>
+
+  <script>
+    // ---- Endpoint routing (Netlify vs GitHub Pages) ----
+    const ASK_TINA_ENDPOINT =
+      (location.hostname === 'tina.morgenacademy.nl')
+        ? '/.netlify/functions/ask-tina'
+        : 'https://tina.morgenacademy.nl/.netlify/functions/ask-tina';
+
+    // ---- UI refs ----
+    const $ = s => document.querySelector(s);
+    const statusEl = $('#status');
+    const micBtn = $('#micBtn');
+    const transcriptEl = $('#transcript');
+    const answerEl = $('#answer');
+    const ttsToggle = $('#ttsToggle');
+    const clearBtn = $('#clearBtn');
+
+    // ---- TTS (geen loop; we cancel vóór elk nieuw praatje) ----
+    let synth = window.speechSynthesis;
+    let nlVoice = null;
+    if ('speechSynthesis' in window) {
+      const pickVoice = () => {
+        const voices = synth.getVoices();
+        nlVoice = voices.find(v => /nl(-|_|\b)/i.test(v.lang)) || voices.find(v => /Dutch/i.test(v.name)) || null;
+      };
+      pickVoice();
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = pickVoice;
+      }
+    }
+    function speak(text){
+      if(!ttsToggle.checked || !('speechSynthesis' in window)) return;
+      synth.cancel(); // voorkom herhaal/overlap
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'nl-NL';
+      if (nlVoice) u.voice = nlVoice;
+      synth.speak(u);
+    }
+
+    // ---- Gespreksgeschiedenis (doorpraten) ----
+    let history = [];
+
+    // ---- Web Speech API (robuster luisteren met stilte-timeout) ----
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null;
+    let resultTimer = null;
+    const SILENCE_MS = 1500; // wacht dit na laatste resultaat vóór verzenden
+
+    function startRec(){
+      if(!SR){
+        transcriptEl.textContent = 'Je browser ondersteunt geen spraakherkenning.';
+        return;
+      }
+      rec = new SR();
+      rec.lang = 'nl-NL';
+      rec.interimResults = true;
+      rec.continuous = true;
+
+      let buffer = '';      // definitieve tekst
+      let lastChunkAt = 0;  // timestamp laatste interim/final
+
+      rec.onstart = () => {
+        statusEl.textContent = 'Status: luisteren…';
+        transcriptEl.textContent = '';
+      };
+      rec.onerror = () => {
+        statusEl.textContent = 'Status: fout';
+      };
+      rec.onresult = (evt) => {
+        let interim = '';
+        for (let i = evt.resultIndex; i < evt.results.length; i++) {
+          const res = evt.results[i];
+          if (res.isFinal) buffer += res[0].transcript + ' ';
+          else interim += res[0].transcript;
+        }
+        lastChunkAt = Date.now();
+        transcriptEl.textContent = (buffer + interim).trim();
+
+        // debounce: als er SILENCE_MS voorbij gaat zonder nieuw resultaat, stop & verwerk
+        clearTimeout(resultTimer);
+        resultTimer = setTimeout(() => {
+          if (rec) rec.stop();
+        }, SILENCE_MS);
+      };
+      rec.onend = () => {
+        clearTimeout(resultTimer);
+        const text = transcriptEl.textContent.trim();
+        if (text) sendToTina(text);
+        else statusEl.textContent = 'Status: klaar';
+      };
+      rec.start();
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (!rec || (statusEl.textContent.includes('klaar') || statusEl.textContent.includes('fout'))) {
+        // start nieuw
+        startRec();
+      } else if (statusEl.textContent.includes('luisteren')) {
+        // manueel stoppen
+        rec.stop();
+      } else {
+        startRec();
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      history = [];
+      transcriptEl.textContent = 'Hier verschijnt wat je zegt...';
+      answerEl.textContent = '—';
+      if (synth) synth.cancel();
+      statusEl.textContent = 'Status: klaar';
+    });
+
+    async function sendToTina(text){
+      try{
+        statusEl.textContent = 'Status: verwerken…';
+        history.push({ role:'user', content:text });
+
+        const resp = await fetch(ASK_TINA_ENDPOINT, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ input: text, history })
+        });
+
+        if(!resp.ok){
+          const msg = await resp.text();
+          console.error('Function error:', msg);
+          answerEl.textContent = 'Er ging iets mis bij het ophalen van het antwoord.';
+          statusEl.textContent = 'Status: fout';
+          return;
+        }
+
+        const data = await resp.json();
+        const reply = (data.reply || '').trim() || '(geen antwoord)';
+        answerEl.textContent = reply;
+        history.push({ role:'assistant', content: reply });
+
+        speak(reply);
+        statusEl.textContent = 'Status: klaar';
+      }catch(e){
+        console.error(e);
+        answerEl.textContent = 'Kon geen verbinding maken.';
+        statusEl.textContent = 'Status: fout';
+      } finally {
+        rec = null; // forceer schone start bij volgende klik
+      }
+    }
+  </script>
 </body>
 </html>
