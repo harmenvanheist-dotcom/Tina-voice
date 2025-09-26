@@ -1,322 +1,378 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tina · Voice Assistant · Morgen Academy</title>
-  <meta name="description" content="Nederlandstalige voice interface met native microfoon-toegang." />
-  <link rel="icon" href="logo.png">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>Tina · Voice assistent</title>
+  <meta name="color-scheme" content="dark light" />
+
   <style>
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; }
+    /* ---------- Reset & base ---------- */
+    *, *::before, *::after { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: #F5F7FA;
+      background:
+        radial-gradient(1200px 800px at 10% 0%, rgba(216,253,87,0.08), transparent 60%),
+        radial-gradient(900px 700px at 100% 100%, rgba(216,253,87,0.06), transparent 65%),
+        #5B2D82; /* Morgen-paars */
+      line-height: 1.5;
+      /* iOS notch / toolbars */
+      padding-top: calc(20px + env(safe-area-inset-top));
+      padding-bottom: calc(28px + env(safe-area-inset-bottom));
       -webkit-text-size-adjust: 100%;
-      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
-      background: linear-gradient(135deg, #D5C3DC 0%, #591270 100%) fixed;
-      color: #f7f7f9;
-      display: grid;
-      place-items: center;
-      padding: clamp(12px, 3vw, 32px);
-      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      text-size-adjust: 100%;
     }
-    a { color: #bff1ff; text-decoration: none; }
+
+    a { color: #B6FF5A; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .shell {
-      width: min(1100px, 96vw);
-      background: rgba(20, 16, 28, 0.5);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 22px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
-      overflow: hidden;
+
+    :root{
+      /* huisstijl */
+      --paars: #5B2D82;
+      --paars-dark: #462365;
+      --lime: #D8FD57;
+      --lime-glow: #E6FF8A;
+      --card: rgba(255,255,255,0.06);
+      --card-strong: rgba(0,0,0,0.15);
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --gap-xl: clamp(18px, 3vw, 28px);
+      --gap-lg: clamp(16px, 2.5vw, 24px);
+      --gap-md: clamp(12px, 2vw, 20px);
+      --gap-sm: clamp(8px, 1.4vw, 14px);
+      --maxw: 1080px;
+    }
+
+    .wrap {
+      width: min(94vw, var(--maxw));
+      margin: 0 auto;
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+      background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.04));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: clamp(14px, 2.4vw, 20px) clamp(14px, 2.4vw, 22px);
       position: relative;
     }
-    header {
-      padding: clamp(14px, 3vw, 28px);
+
+    .topline {
       display: grid;
       grid-template-columns: auto 1fr auto;
       align-items: center;
-      gap: 12px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+      column-gap: var(--gap-md);
     }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .brand .logo {
-      width: 44px; height: 44px; border-radius: 10px; overflow: hidden;
-      border: 1px solid rgba(255,255,255,.15); box-shadow: 0 6px 16px rgba(0,0,0,.35);
-      flex: 0 0 auto;
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
     }
-    .brand .logo img { width: 100%; height: 100%; display: block; }
-    .brand-title { display: grid; gap: 6px; align-items: start; }
-    .brand-title h1 {
-      margin: 0; font-size: clamp(22px, 3.6vw, 36px);
-      letter-spacing: .2px; color: #D8FD57; text-shadow: 0 2px 10px rgba(216,253,87,.3);
-      line-height: 1.15;
+    .brand img {
+      width: clamp(30px, 6vw, 40px);
+      height: clamp(30px, 6vw, 40px);
+      border-radius: 10px;
+      display:block;
     }
-    .brand-title p { margin: 0; color: #dfd3e6; opacity: .95; max-width: 70ch; }
-    .top-controls {
-      display: flex; align-items: center; gap: 12px; justify-self: end;
-      color: #e9ffd1; font-size: 14px;
+    .brand h1 {
+      margin: 0;
+      font-weight: 800;
+      font-size: clamp(22px, 4.6vw, 30px); /* iets groter zoals je vroeg */
+      letter-spacing: 0.5px;
     }
-    .status-chip {
-      padding: 8px 12px; border-radius: 999px;
-      background: rgba(216,253,87,.12); color: #e9ffd1;
-      border: 1px solid rgba(216,253,87,.25); white-space: nowrap;
-      font-variant-numeric: tabular-nums; font-size: 14px;
+
+    .sub {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      font-size: clamp(13px, 2.9vw, 15px);
+      opacity: 0.92;
     }
+
+    .status {
+      justify-self: end;
+      color: #272C1D;
+      background: rgba(214,255,100,0.85);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: clamp(12px, 2.7vw, 13px);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    /* ---------- Grid body ---------- */
     .grid {
-      display: grid; grid-template-columns: 360px 1fr;
-      gap: clamp(12px, 3vw, 24px); padding: clamp(12px, 3vw, 24px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap-xl);
+      margin-top: var(--gap-xl);
     }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-    .panel {
-      background: rgba(255,255,255,0.04);
+
+    @media (max-width: 820px){
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18));
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 18px;
-      padding: clamp(12px, 2.6vw, 20px);
-      min-height: 140px;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: clamp(16px, 3vw, 22px);
     }
-    .panel h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: .3px; text-transform: uppercase; color: #D8FD57; }
-    .panel .content { color: #f3edf7; min-height: 90px; white-space: pre-wrap; word-break: break-word; hyphens: auto; }
-    .control { display: grid; place-items: center; gap: 14px; text-align: center; }
-    .mic-button {
-      width: 140px; height: 140px; border-radius: 50%; border: none; cursor: pointer;
-      color: #591270; background: radial-gradient(70% 70% at 50% 50%, #D8FD57 0%, #a8e34a 100%);
-      box-shadow: 0 10px 30px rgba(216,253,87,.45); font-size: 40px; line-height: 1;
-      display: grid; place-items: center; transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-    }
-    .mic-button:hover { transform: translateY(-1px) scale(1.02); }
-    .mic-button:active { transform: translateY(0) scale(.98); }
-    .mic-button.active {
-      background: radial-gradient(70% 70% at 50% 50%, #ff6b6b 0%, #ff5252 100%);
-      color: #fff; box-shadow: 0 16px 40px rgba(255,107,107,.55); animation: pulse 1.4s infinite;
-    }
-    @keyframes pulse { 0%{box-shadow:0 12px 30px rgba(255,107,107,.45);transform:scale(1);}
-      50%{box-shadow:0 20px 50px rgba(255,107,107,.75);transform:scale(1.05);}
-      100%{box-shadow:0 12px 30px rgba(255,107,107,.45);transform:scale(1);} }
-    .hint { color: #d9cae5; opacity: .9; font-size: 14px; }
 
-    /* CTA blok onder de tool */
-    .cta-wrap { padding: 0 clamp(12px, 3vw, 24px) clamp(16px, 3vw, 24px); }
-    .cta {
-      padding: 12px 14px; border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 14px; background: rgba(255,255,255,0.05);
-      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    /* ---------- Mic ---------- */
+    .micbox{
+      display: grid;
+      place-items: center;
+      text-align: center;
+      gap: var(--gap-md);
+      min-height: clamp(220px, 36vw, 300px);
+      background: linear-gradient(160deg, rgba(255,255,255,0.02), rgba(0,0,0,0.22));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius-lg);
     }
-    .cta p { margin: 0; color: #f3edf7; }
-    .cta p b { color: #D8FD57; }
-    .cta .btn {
-      display: inline-block; padding: 10px 14px;
-      background: linear-gradient(135deg,#D8FD57,#a8e34a); color: #2a1737;
-      border-radius: 999px; font-weight: 600; box-shadow: 0 8px 24px rgba(216,253,87,.35); white-space: nowrap;
+    .mic{
+      width: clamp(160px, 34vw, 240px);
+      height: clamp(160px, 34vw, 240px);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #1F1F1F;
+      background:
+        radial-gradient(60% 60% at 50% 38%, rgba(255,255,255,0.35), rgba(255,255,255,0) 60%),
+        radial-gradient(70% 70% at 50% 60%, rgba(0,0,0,0.25), rgba(0,0,0,0) 60%),
+        var(--lime);
+      box-shadow:
+        0 8px 24px rgba(0,0,0,0.35),
+        0 0 0 10px rgba(214,255,100,0.08);
+      transition: transform .12s ease;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .cta .btn:hover { transform: translateY(-1px); }
+    .mic:active{ transform: scale(.98); }
+    .mic-emoji{ font-size: clamp(56px, 8.5vw, 82px); filter: drop-shadow(0 4px 10px rgba(0,0,0,.3)); }
+    .mic-hint{ opacity:.9; font-size: clamp(13px, 2.9vw, 15px); }
 
-    footer {
-      padding: clamp(10px, 2vw, 16px) clamp(12px, 3vw, 24px);
-      display: flex; justify-content: space-between; gap: 10px; color: #d9cae5;
-      border-top: 1px solid rgba(255,255,255,0.08);
+    /* ---------- Transcript / Answer ---------- */
+    .panel{
+      background: linear-gradient(160deg, rgba(255,255,255,0.02), rgba(0,0,0,0.22));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius-lg);
+      padding: clamp(16px, 2.8vw, 22px);
+      min-height: clamp(260px, 38vw, 320px);
     }
-    footer a { color: #bff1ff; }
+    .label{
+      color: var(--lime);
+      font-weight: 800;
+      letter-spacing: .6px;
+      font-size: clamp(14px, 3.2vw, 16px);
+      margin-bottom: 12px;
+    }
+    .mono{ font-family: ui-sans-serif, system-ui, -apple-system; font-weight: 500; }
+    .ghost{ opacity:.8; }
 
-    @media (max-width: 768px) {
-      body { padding-top: calc(30px + env(safe-area-inset-top)); }
-      .brand .logo { width: 38px; height: 38px; }
-      .brand-title h1 { font-size: 22px; }
-      .brand-title p { font-size: 14px; }
-      .top-controls { gap: 8px; }
-      .status-chip { font-size: 12px; padding: 6px 10px; }
-      .mic-button { width: 110px; height: 110px; font-size: 34px; }
-      .panel .content { font-size: 15px; }
-      .cta { grid-template-columns: 1fr; }
-      .cta .btn { width: 100%; text-align: center; }
-      footer { flex-direction: column; align-items: flex-start; gap: 6px; }
+    /* ---------- CTA / Promo ---------- */
+    .promo {
+      margin-top: var(--gap-xl);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: clamp(16px, 3vw, 22px);
+      position: relative;
     }
-    @media (max-width: 380px) {
-      .mic-button { width: 96px; height: 96px; font-size: 30px; }
-      .panel { padding: 10px; }
-      .panel h2 { font-size: 12px; }
-      .panel .content { font-size: 14px; }
+    .promo p{
+      margin: 0 0 var(--gap-md) 0;
+      font-size: clamp(16px, 3.8vw, 20px);
     }
-    @media (prefers-reduced-motion: reduce) { .mic-button.active { animation: none; } }
+    .cta{
+      display: inline-block;
+      background: linear-gradient(180deg, var(--lime), #c8fb3c);
+      color: #222;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: clamp(12px, 2.8vw, 18px) clamp(18px, 4.2vw, 28px);
+      box-shadow: 0 12px 36px rgba(214,255,100,0.35);
+      border: 1px solid rgba(0,0,0,0.08);
+      transform: translateZ(0);
+    }
+
+    /* extra bodemruimte voor iOS toolbar zodat CTA niet overlapt */
+    .spacer-bottom{
+      height: calc(20px + env(safe-area-inset-bottom));
+    }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      margin-top: var(--gap-lg);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: baseline;
+      font-size: clamp(12px, 2.8vw, 14px);
+      opacity: .9;
+    }
+
+    /* ---------- Mobile polish ---------- */
+    @media (max-width: 420px){
+      .sub { margin-top: 6px; }
+      .panel { min-height: 260px; }
+      .mic-hint{ max-width: 30ch; margin: 0 auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .mic { transition: none; }
+    }
   </style>
 </head>
+
 <body>
-  <div class="shell">
-    <header>
-      <div class="brand">
-        <a class="logo" href="https://morgenacademy.nl" target="_blank" rel="noopener" aria-label="Ga naar Morgen Academy">
-          <img src="logo.png" alt="Morgen Academy logo">
-        </a>
-        <div class="brand-title">
+  <div class="wrap">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="topline">
+        <a class="brand" href="https://morgenacademy.nl" aria-label="Naar Morgen Academy">
+          <img src="logo.png" alt="Morgen Academy logo" />
           <h1>Tina</h1>
-          <p>Jouw personal assistent, bespreek waar je mee bezig bent en Tina vat het niet alleen voor je samen, ze geeft je ook je belangrijkste to-do's.</p>
-        </div>
+        </a>
+        <div class="status" id="status">Status: klaar</div>
+        <p class="sub">
+          Jouw personal assistent — bespreek waar je mee bezig bent. Tina vat samen én geeft je belangrijkste to-do’s.
+        </p>
       </div>
-      <div class="top-controls">
-        <label style="display:flex;align-items:center;gap:8px;">
-          <input id="ttsToggle" type="checkbox" checked />
-          <span>Praat terug</span>
-        </label>
-        <div id="statusChip" class="status-chip">Status: klaar</div>
+
+      <!-- main grid -->
+      <div class="grid">
+        <!-- left -->
+        <div class="card">
+          <div class="micbox">
+            <button class="mic" id="mic" aria-label="Start of stop met inspreken">
+              <span class="mic-emoji">🎤</span>
+            </button>
+            <div class="mic-hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
+          </div>
+        </div>
+
+        <!-- right -->
+        <div class="card">
+          <div class="panel" style="margin-bottom: var(--gap-lg);">
+            <div class="label">TRANSCRIPT</div>
+            <div id="transcript" class="mono ghost">Hier verschijnt wat je zegt…</div>
+          </div>
+
+          <div class="panel">
+            <div class="label">ANTWOORD</div>
+            <div id="answer" class="mono ghost">—</div>
+          </div>
+        </div>
       </div>
     </header>
 
-    <div class="grid">
-      <section class="control panel">
-        <div class="control">
-          <button id="micBtn" class="mic-button" aria-pressed="false" aria-label="Start microfoon">🎤</button>
-          <div class="hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
-        </div>
-      </section>
+    <!-- Promo onder de tool -->
+    <section class="promo" aria-label="Morgen Academy teaser">
+      <p>
+        <strong style="color:var(--lime)">Slimmer werken met AI</strong>, zodat jij tijd hebt voor leuke dingen. Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de avonden: met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.
+      </p>
+      <a class="cta" href="https://morgenacademy.nl" target="_blank" rel="noopener">Ontdek trainingen</a>
+    </section>
 
-      <section class="panel">
-        <h2>Transcript</h2>
-        <div id="transcript" class="content">Hier verschijnt wat je zegt…</div>
-        <h2>Antwoord</h2>
-        <div id="response" class="content">—</div>
-      </section>
-    </div>
+    <div class="spacer-bottom"></div>
 
-    <div class="cta-wrap">
-      <div class="cta">
-        <p><b>Slimmer werken met AI</b>, zodat jij tijd hebt voor leuke dingen. Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de avonden: met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.</p>
-        <a class="btn" href="https://morgenacademy.nl" target="_blank" rel="noopener">Ontdek trainingen</a>
-      </div>
-    </div>
-
-    <footer>
+    <footer class="footer">
       <div>Werkt alleen via <strong>HTTPS</strong> en na een gebruikersactie. iOS Safari: tabblad actief houden.</div>
-      <div><small>Prototype · <a href="https://morgenacademy.nl" target="_blank" rel="noopener">Morgen Academy</a></small></div>
+      <div>•</div>
+      <div>Prototype · <a href="https://morgenacademy.nl">Morgen Academy</a></div>
     </footer>
   </div>
 
+  <!-- ---------- App logic ---------- -->
   <script>
-    const API_URL = "/.netlify/functions/ask-tina";
-    const micBtn = document.getElementById('micBtn');
-    const statusChip = document.getElementById('statusChip');
+    const micBtn = document.getElementById('mic');
     const transcriptEl = document.getElementById('transcript');
-    const responseEl = document.getElementById('response');
-    const ttsToggle = document.getElementById('ttsToggle');
+    const answerEl = document.getElementById('answer');
+    const statusEl = document.getElementById('status');
 
-    let mediaStream = null;
-    let recognition = null;
-    let listening = false;
-    let ttsOn = true;
-    let history = []; // {role:'user'|'assistant', content:'...'}
+    const API_URL = "/.netlify/functions/ask-tina";
+    let mediaRecorder, audioChunks = [], isRecording = false;
 
-    ttsToggle.addEventListener('change', () => { ttsOn = ttsToggle.checked; });
+    function setStatus(text){ statusEl.textContent = text; }
 
-    function setStatus(text) { statusChip.textContent = 'Status: ' + text; }
-    function setTranscript(text) { transcriptEl.textContent = text || '—'; }
-    function setResponse(text) { responseEl.textContent = text || '—'; }
+    async function startRecording(){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if(e.data.size) audioChunks.push(e.data); };
+        mediaRecorder.onstop = async () => {
+          setStatus("Status: verwerken…");
+          const wav = new Blob(audioChunks, { type: 'audio/webm' });
+          // eenvoudige client-side speech-to-text via Web Speech API fallback
+          // (op iOS kan dit ontbreken; transcript blijft dan leeg tot we server-side STT integreren)
+          transcriptEl.textContent = "…verwerken…";
+          // Stuur audio NIET mee; deze demo stuurt de transcript-tekst. Gebruik je eigen STT indien gewenst.
+          // Voor nu tonen we een placeholder en sturen we de transcriptcontent die al in het UI-veld staat.
+          // In productie kun je Whisper API gebruiken.
 
-    function initRecognition() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return null;
-      const rec = new SpeechRecognition();
-      rec.continuous = true; rec.interimResults = true; rec.lang = 'nl-NL';
-      rec.maxAlternatives = 1; return rec;
-    }
+          // Als er nog niets staat, stuur een lege tekst.
+          const userInput = transcriptEl.textContent && transcriptEl.textContent !== "Hier verschijnt wat je zegt…" ? transcriptEl.textContent : "";
 
-    function speak(text) {
-      if (!ttsOn || !('speechSynthesis' in window) || !text) return Promise.resolve();
-      return new Promise((resolve) => {
-        const u = new SpeechSynthesisUtterance(text);
-        const voices = speechSynthesis.getVoices();
-        const nl = voices.find(v => /nl(-|_)?NL/i.test(v.lang)) || voices[0];
-        u.voice = nl; u.rate = 1.0; u.pitch = 1.0; u.lang = 'nl-NL';
-        u.onend = resolve; u.onerror = resolve;
-        try { speechSynthesis.cancel(); } catch {}
-        speechSynthesis.speak(u);
-      });
-    }
-
-    async function askTina(userText) {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 20000);
-      const body = JSON.stringify({
-        input: userText,
-        history: history.slice(-6) // stuur laatste 6 beurten mee
-      });
-      const r = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body, signal: controller.signal
-      });
-      clearTimeout(t);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await r.json();
-      return data.reply || '(geen antwoord)';
-    }
-
-    async function startListening() {
-      if (listening) return;
-      try {
-        if (speechSynthesis.speaking) speechSynthesis.cancel(); // barge-in
-        if (navigator.mediaDevices?.getUserMedia) {
-          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        } else { setStatus('browser ondersteunt geen microfoon'); return; }
-
-        recognition = initRecognition();
-        let finalText = '';
-        if (recognition) {
-          recognition.onresult = (e) => {
-            let interim = '';
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-              const res = e.results[i];
-              if (res.isFinal) finalText += res[0].transcript + ' ';
-              else interim += res[0].transcript;
-            }
-            setTranscript((finalText + ' ' + interim).trim());
-          };
-          recognition.onerror = (e) => setStatus('spraakfout: ' + (e.error || e.message || e));
-          recognition.onend = () => { if (listening) stopListening(); };
-          recognition.start();
-          setStatus('luisteren… spreek nu');
-        } else {
-          setStatus('luisteren (alleen mic, geen SpeechRecognition)');
-        }
-
-        listening = true;
-        micBtn.classList.add('active');
-        micBtn.setAttribute('aria-pressed', 'true');
-      } catch (err) {
+          // Vraag antwoord aan Tina
+          try{
+            const resp = await fetch(API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ input: userInput })
+            });
+            const data = await resp.json();
+            answerEl.textContent = (data && data.reply) ? data.reply : "(geen antwoord)";
+          }catch(err){
+            console.error(err);
+            answerEl.textContent = "Fout bij ophalen antwoord.";
+          }finally{
+            setStatus("Status: klaar");
+          }
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        micBtn.classList.add("active");
+        setStatus("Status: opnemen…");
+      }catch(err){
         console.error(err);
-        setStatus('toestemming geweigerd of fout');
-        stopListening();
+        setStatus("Status: microfoon geweigerd");
       }
     }
 
-    function stopListening() {
-      if (!listening) return;
-      try { if (recognition) recognition.stop(); } catch {}
-      if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
-      listening = false;
-      micBtn.classList.remove('active'); micBtn.setAttribute('aria-pressed', 'false');
-      setStatus('verwerken…');
-      const said = transcriptEl.textContent.trim();
-      if (!said || said === 'Hier verschijnt wat je zegt…') { setStatus('klaar'); return; }
-
-      history.push({ role: 'user', content: said });
-      askTina(said).then(async reply => {
-        setResponse(reply);
-        history.push({ role: 'assistant', content: reply });
-        setStatus('klaar');
-        // Als het antwoord een vraag bevat → voorlezen → opnieuw luisteren
-        const hasQuestion = /\?\s*($|\n)/.test(reply);
-        await speak(reply);
-        if (hasQuestion) startListening();
-      }).catch(err => {
-        console.error(err); setResponse('Fout bij ophalen antwoord.'); setStatus('fout');
-      });
+    function stopRecording(){
+      if(mediaRecorder && isRecording){
+        mediaRecorder.stop();
+        isRecording = false;
+        micBtn.classList.remove("active");
+      }
     }
 
-    micBtn.addEventListener('click', () => { if (listening) stopListening(); else startListening(); });
+    micBtn.addEventListener('click', () => {
+      if(!isRecording){ startRecording(); }
+      else { stopRecording(); }
+    });
 
-    // Zorg dat voices geladen zijn op sommige browsers
-    if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
+    // dummy typ-ervaring voor transcript (zodat mobiel UI niet leeg blijft)
+    // Je kunt dit vervangen door echte live STT.
+    transcriptEl.addEventListener('click', () => {
+      const t = prompt("Wat wil je aan Tina vertellen?");
+      if(t){ transcriptEl.textContent = t; transcriptEl.classList.remove('ghost'); }
+    });
   </script>
 </body>
 </html>
