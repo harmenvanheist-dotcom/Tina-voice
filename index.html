@@ -1,323 +1,90 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tina – Voice Assistent</title>
-  <style>
-    :root{
-      --bg1:#581270;           /* Morgen-paars donker */
-      --bg2:#3b0a50;           /* paars dieper */
-      --card:#442051;
-      --glass:rgba(80,35,95,.55);
-      --lime:#D5FF2C;          /* accent */
-      --lime-700:#b9e022;
-      --white:#ffffff;
-      --text:#F2EAF5;
-      --muted:#cdbdd6;
-      --shadow1:rgba(0,0,0,0.25);
-      --shadow2:rgba(0,0,0,0.35);
-      --radius:20px;
-      --radius-lg:26px;
-      --maxw:1080px;
+// netlify/functions/ask-tina.js
+
+const SYSTEM_PROMPT = `
+Je bent **Tina**, de Nederlandstalige assistent van Morgen Academy.
+Schrijf altijd in het Nederlands, aanspreekvorm "je".
+
+DOEL
+- Geef bruikbaar, praktijkgericht advies.
+- Stel alleen verdiepende vragen als ze écht nodig zijn om verder te kunnen.
+
+STIJL
+- Kort waar het kan, langer waar het moet. Zero-wolligheid.
+- Geen herhaling van wat de gebruiker zei.
+- Antwoord mag compact zijn, maar niet ten koste van volledigheid.
+
+STRUCTUUR (strikt aanhouden)
+1) **Antwoord** – 2–6 zinnen met duidelijke richting of mini-plan. Langer mag als het om een uitgebreid project gaat; lever dan een echt nuttige schets.
+2) **Vragen (optioneel, max 3)** – Alleen tonen als cruciale info ontbreekt. Kort en puntsgewijs.
+3) **Samenvatting** – 2–6 zinnen die besluiten en lijn uitleggen.
+4) **To-do’s** – 3–5 bullets. Meer is toegestaan als de gebruiker expliciet veel punten/acties noemt. Elke bullet start met een werkwoord + realistische termijn (dd-mm, “vandaag/morgen/volgende week”).
+
+REGELS
+- Noem specifieke plaatsnamen/organisaties alleen als de gebruiker ze noemt.
+- Als “vergunning” of “gemeente” voorkomt: neem een to-do op “Check vergunning bij gemeente <plaats>”.
+- Wees concreet (wie/wat/wanneer) maar verzin geen feiten.
+- Geen lange uitwijdingen; liever keuzes + vervolgstappen.
+
+FORMAT
+- Gebruik markdown voor kopjes/bullets.
+`;
+
+export async function handler(event) {
+  try {
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, body: 'Method Not Allowed' };
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color:var(--text);
-      background: radial-gradient(1200px 800px at 20% 10%, #7c3ea1 0%, var(--bg1) 38%, var(--bg2) 100%);
-      padding: max(16px, env(safe-area-inset-top)) 16px 32px;
-    }
-    .wrap{max-width:var(--maxw); margin:0 auto;}
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.06)) , var(--glass);
-      border: 1px solid rgba(255,255,255,.07);
-      box-shadow: 0 10px 40px var(--shadow1);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-    }
-    header{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; margin:8px 0 18px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:12px;
-    }
-    .brand img{ width:34px; height:34px; border-radius:10px; display:block }
-    .brand a{ color:var(--white); text-decoration:none }
-    .title{
-      font-size:1.7rem; font-weight:800; color:var(--lime);
-      line-height:1;
-    }
-    .subtitle{
-      color:var(--muted); font-size:.95rem; margin-top:6px;
-      max-width:800px;
-    }
-    .status{
-      background: rgba(255,255,255,.08); color:#d9e7c7;
-      border:1px solid rgba(255,255,255,.12);
-      padding:8px 12px; border-radius:999px; font-size:.85rem;
-      min-width:120px; text-align:center;
+    const body = JSON.parse(event.body || '{}');
+    const input = (body.input || '').toString();
+    const history = Array.isArray(body.history) ? body.history : [];
+
+    if (!input) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Missing "input"' }) };
     }
 
-    .grid{
-      display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:6px;
-    }
-    .panel{ border-radius:var(--radius); padding:18px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.06); }
-    .panel h3{ margin:0 0 12px; font-size:.95rem; letter-spacing:.5px; color:var(--lime) }
-    .mic-panel{ display:flex; align-items:center; justify-content:center; height:320px; }
-    .mic{
-      width:190px; height:190px; border-radius:50%;
-      background: radial-gradient(circle at 50% 35%, #eaff74 0%, var(--lime) 60%, #c6fb22 100%);
-      box-shadow: 0 28px 60px rgba(0,0,0,.35), 0 0 0 12px rgba(213,255,44,.15) inset;
-      border:none; cursor:pointer; transition: transform .12s ease, box-shadow .12s ease;
-      display:grid; place-items:center; font-size:70px;
-    }
-    .mic:hover{ transform: translateY(-2px) scale(1.02); }
-    .mic.active{ box-shadow: 0 10px 40px rgba(255, 35, 130, .25), 0 0 0 18px rgba(255,255,255,.12) inset; }
-    .hint{ text-align:center; color:#d7cde0; margin-top:14px; font-size:.95rem }
-
-    .text{
-      white-space:pre-wrap; line-height:1.6; color:#efe6f4;
-      min-height:120px;
-    }
-    .controls{
-      display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:8px; color:#d7cde0; font-size:.92rem
-    }
-    .switch{
-      display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
-    }
-    .switch input{ accent-color: var(--lime) }
-    .btn{
-      border:none; background: linear-gradient(135deg, var(--lime), #eaff74);
-      color:#252525; font-weight:700; padding:10px 14px; border-radius:999px; cursor:pointer;
-      box-shadow: 0 10px 24px rgba(213,255,44,.26);
-    }
-    .btn:disabled{ opacity:.6; cursor:not-allowed }
-
-    /* Promo blok */
-    .promo{ margin-top:18px; padding:16px; }
-    .promo h4{ margin:0 0 8px; color:var(--lime) }
-    .promo p{ margin:0; color:#efe6f4 }
-    .promo .cta{ margin-top:14px; }
-
-    footer{
-      margin-top:14px; color:#d2c7d8; font-size:.9rem; display:flex; gap:8px; flex-wrap:wrap; justify-content:space-between
-    }
-    footer a{ color:#cfe4ff; text-decoration:none }
-
-    /* Mobile */
-    @media (max-width: 860px){
-      .grid{ grid-template-columns:1fr; }
-      .mic{ width:160px; height:160px; font-size:56px }
-      .mic-panel{ height:auto }
-      .promo{ font-size:1rem }
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <header>
-        <div class="brand">
-          <a href="https://morgenacademy.nl" target="_blank" rel="noopener">
-            <img src="logo.png" alt="Morgen Academy" />
-          </a>
-          <div>
-            <div class="title">Tina</div>
-            <div class="subtitle">
-              Jouw personal assistent — bespreek waar je mee bezig bent. Tina vat samen en geeft je belangrijkste to-do’s.
-            </div>
-          </div>
-        </div>
-        <div class="status" id="status">Status: klaar</div>
-      </header>
-
-      <div class="grid">
-        <section class="panel">
-          <div class="mic-panel">
-            <button id="micBtn" class="mic" aria-label="Spreekknop">🎤</button>
-          </div>
-          <div class="hint">Klik om te spreken. Nogmaals klikken = stoppen.</div>
-        </section>
-
-        <section class="panel">
-          <h3>TRANSCRIPT</h3>
-          <div id="transcript" class="text">Hier verschijnt wat je zegt…</div>
-          <h3 style="margin-top:16px;">ANTWOORD</h3>
-          <div id="answer" class="text">—</div>
-
-          <div class="controls">
-            <label class="switch" title="Laat Tina antwoorden voorlezen">
-              <input type="checkbox" id="ttsToggle" />
-              <span>Antwoorden voorlezen</span>
-            </label>
-            <button id="clearBtn" class="btn" title="Wis de gesprekshistorie">Wis gesprek</button>
-          </div>
-        </section>
-      </div>
-
-      <section class="panel promo">
-        <h4>Slimmer werken met AI</h4>
-        <p>
-          …zodat jij tijd hebt voor leuke dingen. Of je nu elke dag in meetings zit, eindeloze to-do’s hebt of je business runt in de
-          avonden: met Morgen Academy maak je je werkdag leuker en slimmer — ook als je geen tech-expert bent.
-        </p>
-        <div class="cta">
-          <a class="btn" href="https://morgenacademy.nl" target="_blank" rel="noopener">Ontdek trainingen</a>
-        </div>
-      </section>
-
-      <footer>
-        <div>Werkt alleen via <b>HTTPS</b> en na een gebruikersactie. iOS Safari: tabblad actief houden.</div>
-        <div>Prototype · <a href="https://morgenacademy.nl" target="_blank" rel="noopener">Morgen Academy</a></div>
-      </footer>
-    </div>
-  </div>
-
-  <script>
-    // ===== Globale state =====
-    const statusEl = document.getElementById('status');
-    const micBtn   = document.getElementById('micBtn');
-    const transcriptEl = document.getElementById('transcript');
-    const answerEl     = document.getElementById('answer');
-    const ttsToggle = document.getElementById('ttsToggle');
-    const clearBtn  = document.getElementById('clearBtn');
-
-    // Gespreksgeschiedenis voor multi-turn (client-side).
-    // Formaat: [{role:'user'|'assistant', content:'...'}]
-    const history = JSON.parse(sessionStorage.getItem('tina_history') || '[]');
-
-    function saveHistory(){
-      sessionStorage.setItem('tina_history', JSON.stringify(history.slice(-16)));
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return { statusCode: 500, body: JSON.stringify({ error: 'OPENAI_API_KEY not set' }) };
     }
 
-    // ===== Speech-to-Text (Web Speech API) =====
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let rec = null, listening = false;
-
-    if (SpeechRec) {
-      rec = new SpeechRec();
-      rec.lang = 'nl-NL';
-      rec.interimResults = true;
-      rec.continuous = false;
-
-      let currentText = '';
-      rec.onstart = () => { setStatus('Luisteren…'); micBtn.classList.add('active'); currentText=''; };
-      rec.onresult = (e) => {
-        let interim = '';
-        for (let i=e.resultIndex; i<e.results.length; i++){
-          const t = e.results[i][0].transcript;
-          if (e.results[i].isFinal) currentText += t;
-          else interim += t;
-        }
-        transcriptEl.textContent = (currentText + interim).trim();
-      };
-      rec.onerror = () => { setStatus('fout'); micBtn.classList.remove('active'); listening=false; };
-      rec.onend = async () => {
-        micBtn.classList.remove('active'); listening = false;
-        const finalText = transcriptEl.textContent.trim();
-        if (finalText) await handleUserTurn(finalText);
-        else setStatus('klaar');
-      };
-    } else {
-      document.querySelector('.hint').textContent = 'Spraakherkenning wordt niet ondersteund in deze browser.';
-    }
-
-    micBtn.addEventListener('click', () => {
-      if (!rec){ return; }
-      if (!listening){ listening = true; rec.start(); }
-      else { rec.stop(); }
-    });
-
-    clearBtn.addEventListener('click', () => {
-      history.length = 0; saveHistory();
-      transcriptEl.textContent = 'Hier verschijnt wat je zegt…';
-      answerEl.textContent = '—';
-      setStatus('klaar');
-    });
-
-    // ===== Doorpraten: stuur geschiedenis + nieuwe user zin naar de function =====
-    async function handleUserTurn(userText){
-      setStatus('verwerken…');
-      // voeg user beurt toe
-      history.push({ role:'user', content: userText });
-      saveHistory();
-
-      // vraag Tina
-      const controller = new AbortController();
-      const timeout = setTimeout(()=>controller.abort(), 25000);
-      try{
-        const resp = await fetch('/.netlify/functions/ask-tina', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ messages: history }),
-          signal: controller.signal
-        });
-        clearTimeout(timeout);
-        if(!resp.ok){
-          const t = await resp.text();
-          answerEl.textContent = 'Fout bij ophalen antwoord.';
-          console.warn('Function error:', t);
-          setStatus('fout');
-          return;
-        }
-        const data = await resp.json();
-        const reply = (data.reply || '').trim();
-        if(!reply){
-          answerEl.textContent = '(geen antwoord)';
-          setStatus('klaar');
-          return;
-        }
-        answerEl.textContent = reply;
-
-        // sla assistent beurt op voor context
-        history.push({ role:'assistant', content: reply });
-        saveHistory();
-
-        // TTS (optioneel)
-        if (ttsToggle.checked) speak(reply);
-
-        setStatus('klaar');
-      } catch(err){
-        answerEl.textContent = 'Onderbroken of timeout.';
-        console.warn(err);
-        setStatus('fout');
+    // Bouw messages op basis van meegegeven history (multi-turn)
+    const messages = [{ role: 'system', content: SYSTEM_PROMPT }];
+    for (const m of history) {
+      if (m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string') {
+        messages.push({ role: m.role, content: m.content });
       }
     }
+    messages.push({ role: 'user', content: input });
 
-    // ===== TTS: antwoord voorlezen =====
-    function pickDutchVoice(){
-      const voices = speechSynthesis.getVoices();
-      // probeer NL-voice te kiezen
-      const nlVoices = voices.filter(v => (v.lang || '').toLowerCase().startsWith('nl'));
-      return nlVoices[0] || voices.find(v => v.lang?.toLowerCase().startsWith('en')) || voices[0];
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        temperature: 0.35,
+        max_tokens: 600,
+        messages
+      })
+    });
+
+    if (!resp.ok) {
+      const detail = await resp.text();
+      return { statusCode: 502, body: JSON.stringify({ error: 'OpenAI error', detail }) };
     }
 
-    function speak(text){
-      if (!('speechSynthesis' in window)) return;
-      try{
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'nl-NL';
-        const v = pickDutchVoice();
-        if (v) u.voice = v;
-        u.rate = 1.02; u.pitch = 1.0;
-        speechSynthesis.speak(u);
-      }catch(e){ console.warn('TTS error', e); }
-    }
+    const data = await resp.json();
+    const reply = data?.choices?.[0]?.message?.content?.trim() || '';
 
-    // Preload voices (Safari)
-    if ('speechSynthesis' in window){
-      speechSynthesis.onvoiceschanged = () => {};
-      speechSynthesis.getVoices();
-    }
-
-    function setStatus(s){
-      statusEl.textContent = 'Status: ' + s;
-    }
-  </script>
-</body>
-</html>
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reply: reply || '(geen antwoord)' })
+    };
+  } catch (err) {
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: String(err) })
+    };
+  }
+}
