@@ -1,129 +1,71 @@
 // netlify/functions/ask-tina.js
-const fs = require('fs').promises;
-const path = require('path');
-const DATA_DIR = path.resolve(__dirname, '../../data');
+// Multi-turn + solide NL-stijl. Server-side call naar OpenAI.
+// Vereist env var: OPENAI_API_KEY (Site settings → Environment variables).
 
 const SYSTEM_PROMPT = `
 Je bent **Tina**, de Nederlandstalige assistent van Morgen Academy.
-- Schrijf in het Nederlands, concreet en zonder wolligheid.
-- Geef bruikbare inhoud: duidelijke stappen, keuzes en consequenties.
-- Structuur (als het past): **Antwoord** · **Vragen** (optioneel, max 3) · **Samenvatting** (1 zin) · **To-do’s** (3–6 bullets met realistische termijnen).
-- Bouw door op het eerdere gesprek (context).
-- Antwoord primair op basis van de gebruiker en eventueel meegegeven CONTEXT. Als info ontbreekt: zeg wat je nodig hebt i.p.v. te raden.
+Schrijf altijd in het Nederlands, spreek de gebruiker aan met "je".
+
+DOEL
+- Geef snel, concreet en bruikbaar advies.
+- Stel alleen verdiepende vragen als ze écht nodig zijn om door te kunnen.
+
+STIJL
+- Kort, vriendelijk, zero-wolligheid.
+- Niet herhalen wat de gebruiker zei, tenzij 1 korte parafrase helpt.
+- Richtinggevend en praktisch.
+
+STRUCTUUR (aanhouden als het past bij de vraag)
+1) Antwoord – 2–6 zinnen met duidelijke richting of mini-plan.
+2) Vragen (optioneel, max 3) – Alleen als cruciale info ontbreekt.
+3) Samenvatting – 1 zin.
+4) To-do’s – 3–5 bullets, elk start met een werkwoord + realistische termijn (dd-mm of “vandaag/morgen/deze week”).
+
+REGELS
+- Als er een stad/locatie genoemd wordt: verwerk die concreet (locaties, gemeente, vergunningen).
+- Als “vergunning” of “gemeente” voorkomt: voeg een to-do toe “Check vergunning bij gemeente <plaats>”.
+- Wees specifiek waar het kan, maar verzin geen feiten.
 `;
 
-async function readTxtFiles(maxFiles = 30, maxBytes = 200_000) {
-  try {
-    const files = await fs.readdir(DATA_DIR);
-    const txts = files.filter(f => f.toLowerCase().endsWith('.txt')).slice(0, maxFiles);
-    const docs = [];
-    for (const f of txts) {
-      const p = path.join(DATA_DIR, f);
-      const stat = await fs.stat(p);
-      if (stat.isFile() && stat.size <= maxBytes) {
-        const content = await fs.readFile(p, 'utf8');
-        docs.push({ name: f, text: content });
-      }
-    }
-    return docs;
-  } catch {
-    return [];
-  }
-}
-
-function scoreDoc(docText, query) {
-  const q = (query || '').toLowerCase().replace(/\s+/g, ' ').trim();
-  if (!q) return 0;
-  const terms = Array.from(new Set(q.split(' ').filter(w => w.length > 2)));
-  const text = docText.toLowerCase();
-  return terms.reduce((acc, t) => acc + (text.split(t).length - 1), 0);
-}
-
-function selectPassages(text, query, maxChars = 1600) {
-  const paras = text.split(/\n{2,}/g).map(p => p.trim()).filter(Boolean);
-  const q = (query || '').toLowerCase();
-  const scored = paras.map(p => {
-    const s = (p.toLowerCase().split(q.slice(0, 24)).length - 1) + (p.length > 300 ? 0.5 : 0);
-    return { p, s };
-  }).sort((a,b) => b.s - a.s);
-
-  let out = '';
-  for (const {p} of scored) {
-    if (!p) continue;
-    if ((out + '\n\n' + p).length > maxChars) break;
-    out += (out ? '\n\n' : '') + p;
-  }
-  if (!out && paras[0]) out = paras[0].slice(0, maxChars);
-  return out;
-}
-
-async function buildContext(query) {
-  const docs = await readTxtFiles();
-  if (!docs.length) return { contextText: '', sources: [] };
-
-  const ranked = docs
-    .map(d => ({ ...d, score: scoreDoc(d.text, query) }))
-    .sort((a,b) => b.score - a.score)
-    .slice(0, 3);
-
-  const parts = [];
-  const sources = [];
-  for (const d of ranked) {
-    if (d.score <= 0) continue;
-    const snippet = selectPassages(d.text, query);
-    if (snippet) {
-      parts.push(`SOURCE: ${d.name}\n${snippet}`);
-      sources.push(d.name);
-    }
-  }
-  return { contextText: parts.join('\n\n---\n\n'), sources };
-}
-
-exports.handler = async (event) => {
+export async function handler(event) {
   try {
     if (event.httpMethod !== 'POST') {
       return { statusCode: 405, body: 'Method Not Allowed' };
     }
-    const { input, history = [] } = JSON.parse(event.body || '{}');
-    if (typeof input !== 'string') {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Missing "input" string' }) };
-    }
-
-    const { contextText, sources } = await buildContext(input);
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return { statusCode: 500, body: JSON.stringify({ error: 'OPENAI_API_KEY not set' }) };
     }
 
-    const messages = [{ role: 'system', content: SYSTEM_PROMPT }];
-
-    if (contextText) {
-      messages.push({
-        role: 'system',
-        content: `CONTEXT (uit documenten; gebruik alleen als bron):
-${contextText}
-
-Richtlijn: noem relevante bronlabels (bestandsnamen) bij concrete instructies die je uit deze context haalt.`
-      });
+    const { messages } = JSON.parse(event.body || '{}');
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Missing "messages" array' }) };
     }
 
-    for (const m of (history || []).slice(-8)) {
-      if (m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant')) {
-        messages.push({ role: m.role, content: m.content });
-      }
+    // Trim lange conversaties: houd de laatste ~8 beurten (user/assistant)
+    const MAX_PAIRS = 8;
+    const trimmed = [];
+    // we bewaren alleen role/content en laten system hier buiten (zetten we zelf)
+    for (const m of messages) {
+      if (!m || !m.role || !m.content) continue;
+      trimmed.push({ role: m.role, content: String(m.content).slice(0, 6000) });
     }
-
-    messages.push({ role: 'user', content: input });
+    // heuristiek om op ~16 berichten te cappen
+    const capStart = Math.max(0, trimmed.length - (MAX_PAIRS * 2));
+    const recent = trimmed.slice(capStart);
 
     const resp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        temperature: 0.35,
-        max_tokens: 650,
-        messages
+        temperature: 0.3,
+        max_tokens: 450,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...recent
+        ]
       })
     });
 
@@ -131,19 +73,15 @@ Richtlijn: noem relevante bronlabels (bestandsnamen) bij concrete instructies di
       const text = await resp.text();
       return { statusCode: 502, body: JSON.stringify({ error: 'OpenAI error', detail: text }) };
     }
-    const data = await resp.json();
-    const reply = (data?.choices?.[0]?.message?.content || '').trim();
 
+    const data = await resp.json();
+    const reply = data?.choices?.[0]?.message?.content?.trim() || '';
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reply: reply || '(geen antwoord)', sources: sources || [] })
+      body: JSON.stringify({ reply: reply || '(geen antwoord)' })
     };
   } catch (err) {
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: String(err) })
-    };
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: String(err) }) };
   }
-};
+}
